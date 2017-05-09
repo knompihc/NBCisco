@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REPORTS AND ALERTS</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="js/auth.js"></script>
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!--CUSTOM BASIC STYLES-->
+    <link href="assets/css/basic.css" rel="stylesheet" />
+    <!--CUSTOM MAIN STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+    <script src="../havelsJscript/schedule.js"></script>
+    <link href="../havelsJscript/jquery.datetimepicker.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="./jquery.datetimepicker.css"/>
+	<style>
+        .modal {
+            display:    none;
+            position:   fixed;
+            z-index:    10000000000;
+            top:        0;
+            left:       0;
+            height:     100%;
+            width:      100%;
+            background: rgba( 255, 255, 255, .7 )
+            url('images/39.GIF')
+            50% 50%
+            no-repeat;
+        }
+        body.loading {
+            overflow: hidden;
+        }
+
+        /* Anytime the body has the loading class, our
+           modal element will be visible */
+        body.loading .modal {
+            display: block;
+        }
+    </style>
+	<script type="text/javascript">
+$(document).ready(function() {
+    var host = window.document.location.hostname;
+    var port = location.port;
+    $body = $("body");
+
+    $(document).on({
+        ajaxStart: function() {$body.addClass("loading");    },
+        ajaxStop: function() { $body.removeClass("loading"); }
+    });
+    $("#help").hover(function(){
+        $("#vic").css( {position:"absolute", top:event.pageY, left: event.pageX,'z-index': "9999",display:'block'});
+        $("#vic").removeClass('hidden');
+    },function(){
+        $("#vic").css( {position:"absolute", top:event.pageY, left: event.pageX,'z-index': "9999",display:'none'});
+        $("#vic").addClass('hidden');
+    });
+	$(".report_gen_userid").focus(function() {
+		$(".user-icon").css("left","-48px");
+	});
+	$(".report_gen_userid").blur(function() {
+		$(".user-icon").css("left","0px");
+	});
+    $("#alarm").on('submit', function (e) {
+        e.preventDefault();
+        var name=$('#name').val();
+        var email=$('#email').val();
+        var mobile=$('#mobile').val();
+        $.ajax({	//create an ajax request to load_page.php
+            type: "GET",
+            url: "http://" + host + ":" + port + "/configure/subscribe?name=" +name+"&email="+email+"&mobile="+mobile ,
+            success: function (msg) {
+                if(msg=="done"){
+                    $('#fill').html("<font size='2' color='green'>You are successfully subscribed to receive SMS notifications !!</font>");
+                }
+                if (msg=="already")
+                {
+                    $('#fill').html("<font size='2' color='#f08080'>You are already subscribed to receive SMS notifications !!</font>");
+                }
+            }
+        });
+    });
+});
+</script>
+<script language="javascript">
+
+function checkEmail() {
+
+    var email = document.getElementById('email_id');
+    var filter = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+
+    if (!filter.test(email.value)) {
+    
+	document.getElementById("errorReport").innerHTML = "You must enter a valid Email";
+    email.focus;
+    return false;
+ }
+}</script>
+</head>
+<body>
+
+<div id="wrapper" class="hidden">
+    <nav class="navbar navbar-default navbar-cls-top overlay_header" role="navigation" style="margin-bottom: 0;text-align: center;background-color: #E71A3B;">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="index.html">
+                <img src="assets/img/logo.jpg" style="height:75px;width:150px">
+            </a>
+        </div>
+        </p>
+        <span style="vertical-align: middle;font-size:200%;color:white"><b>Havells Street Light Management System</b></span>
+
+        <div class="header-right">
+            <table style="font-size: 10px">
+                <tr>
+                    <td>Welcome &nbsp;<a href="#" style="color: white" id="uid"></a></td>
+                    <td rowspan="2"><span style="float: right;"> <a href="#" id="signout" class="btn btn-danger" title="Logout"><i class="fa fa-sign-out fa-2x"></i></a></span></td>
+                </tr>
+                <tr>
+                    <td>Contact Us: +91-80-28390897<span style="font-size: 13px">/</span>8&nbsp;</td>
+                </tr>
+            </table>
+        </div>
+    </nav>
+    <!-- /. NAV TOP  -->
+    <div class="overlay">
+        <nav class="navbar-default navbar-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav" id="main-menu">
+                    <!-- <li>
+                        <div class="user-img-div">
+                            <img src="assets/img/user.png" class="img-thumbnail" />
+
+                            <div class="inner-text">
+                                Jhon Deo Alex
+                            <br />
+                                <small>Last Login : 2 Weeks Ago </small>
+                            </div>
+                        </div>
+
+                    </li>
+ -->
+
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard "></i>MAIN MENU</a>
+                    </li>
+                    <li>
+                        <a href="map-view.html"><i class="fa fa-globe "></i>MAP VIEW </a>
+                    </li>
+                    <li>
+                        <a  href="scheduled.html"><i class="fa fa-calendar "></i>MANAGE SCHEDULES </a>
+                    </li>
+                    <li>
+                        <a  href="configure.html"><i class="fa fa-paperclip "></i>ATTACH SCHEDULE </a>
+                    </li>
+                    <li>
+                        <a href="inventory.html"><i class="fa fa-gavel "></i>SPARE INVENTORY</a>
+                    </li>
+                    <li>
+                        <a class="active-menu" href="report.html"><i class="fa fa-bar-chart "></i>REPORTS AND ALERTS </a>
+                    </li>
+                    <li>
+                        <a   href="energystore.html"><i class="fa fa-bolt"></i>ENERGY METER CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a  href="graph.html"><i class="fa fa-line-chart"></i></i>ENERGY METER REPORTS </a>
+                    </li>
+                    <li>
+                        <a href="zone.html"><i class="fa fa-wrench"></i>ZONE CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a href="group.html"><i class="fa fa-group"></i>GROUP CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a href="support.html"><i class="fa fa-phone-square"></i>SUPPORT </a>
+                    </li>
+                    <li id="cfg" class="hidden">
+                        <a href="admintool.html"><i class="fa fa-user"></i>ADMIN TOOL </a>
+                    </li>
+                    <li>
+                        <a href="analytics.html"><i class="fa fa-pie-chart"></i>ANALYTICS </a>
+                    </li>
+                    <li style="height: 50px">
+                    </li>
+                </ul>
+            </div>
+
+        </nav>
+    </div>
+    <!-- /. NAV SIDE  -->
+    <div id="page-wrapper">
+        <div id="page-inner" >
+            <span style="float: right;height: 12px"><iframe src="http://free.timeanddate.com/clock/i4ztv3ts/n438/fs10/tct/pct/ahr/fti/tt0/th1/ta1" frameborder="0" width="235" height="13" allowTransparency="true"></iframe></span>
+
+            <ul class="nav nav-tabs">
+                <li class="active"><a data-toggle="tab" href="#ads">REPORTS</a></li>
+                <li><a data-toggle="tab" href="#vis">ALERTS</a></li>
+            </ul>
+           <!-- <div class="row">
+                <div class="col-md-12">
+                    <h1 class="page-head-line">REPORTS AND ALERTS</h1>
+                    &lt;!&ndash; <h1 class="page-subhead-line">This is dummy text , you can replace it with your original text. </h1> &ndash;&gt;
+
+                </div>
+            </div>-->
+            <!-- /. ROW  -->
+            <div class="modal"></div>
+            <div id="vic" class="panel-group hidden">
+                <div class="panel panel-primary col-sm-8">
+                    <div class="panel-heading" style="text-align:center;font-weight: bold">NOTE</div>
+                    <div class="panel-body" style="padding: 0px">
+                        <b><p style="font-family: Arial;"> Daily report is generated for 24 Hours data.The daily cycle ends at 08:00 AM.</p></b>
+                        <b><p style="font-family: Arial;"> Weekly report is generated from 1st Day of week (Monday,00:00) to Last Day of Week (Sunday, 23:59). Monthly reports are generated from 1st Day of the Month(Time, 00:00) to Last day of Month (Time, 23:59).</p></b>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin:0 auto;width:85%">
+                <div class="tab-content">
+                    <div id="ads" class="tab-pane fade in active">
+                <div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top: 20px">
+                    <div class="panel-heading" style="text-align:center;font-weight: bold">Reports<span id="help" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+                    <!-- <h1 class="page-subhead-line">This is dummy text , you can replace it with your original text. </h1> -->
+                    <div class="panel-body" style="padding: 0px ">
+                                    <form action="/report" class = "form-horizontal"  style="margin:0 auto;width:60%;" input-align=center" role = "form"  method="post" >
+                                        <div class = "form-group" style=" padding: 10px; margin: auto; width: 95%;">
+                                                    <select name="report_type" class="form-control" required style=" margin-bottom: 10px;">
+                                                        <option value="">Report Type</option>
+                                                        <option value="ENERGY REPORT">ENERGY REPORT</option>
+                                                        <option value="FAULT REPORT">FAULT REPORT</option>
+                                                        <!--<option value="MONTHLY">MONTHLY</option>-->
+                                                    </select>
+                                                    <select name="report_frequency" class="form-control" required style=" margin-bottom: 10px;">
+                                                        <option value="">Report Frequency</option>
+                                                        <option value="DAILY">DAILY</option>
+                                                        <option value="WEEKLY">WEEKLY</option>
+                                                        <option value="MONTHLY">MONTHLY</option>
+                                                    </select>
+                                                <input type = "email" class = "form-control" name = "report_gen_userid" placeholder = "Email id" required style=" margin-bottom: 10px;">
+                                                <div class = "col-sm-offset-3 col-sm-8"><br></div>
+                                                    <button type = "submit" class = "btn btn-primary" value="submit" onclick="checkEmail();" style="margin-left: 150px">SUBMIT</button>
+                                        </div>
+                                    </form>
+                                </div>
+                </div></div>
+                    <div id="vis" class="tab-pane fade">
+                <div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top: 20px">
+                    <div  class="panel-heading" style="text-align:center;font-weight: bold">Alerts<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+                    <div id="fill">
+                        <form id="alarm" style="margin: auto;width: 60%">
+                            <div class="form-group" style=" padding: 10px; margin: auto; width: 95%;">
+                                <input id="name" type="text" class="form-control" required placeholder="NAME" style=" margin-bottom: 10px;">
+                                <input id="email" type="email" class="form-control" required  placeholder="EMAIL" style=" margin-bottom: 10px;">
+                                <input id="mobile" pattern="\d*" minLength="10" maxlength="10" class="form-control" required placeholder="MOBILE NO." style=" margin-bottom: 10px;">
+                                <div class = "col-sm-offset-3 col-sm-8"><br></div>
+                                <input style="margin-left: 150px" type="submit" class="btn btn-primary" value="SUBMIT" >
+                            </div>
+                        </form>
+                    </div>
+                </div></div></div>
+            </div>
+
+
+					</div>
+				</div>
+
+                <!-- /. ROW  -->
+
+                <!-- -->
+
+    <div id="footer-sec">
+        <!-- &copy; 2014 YourCompany | Design By : <a href="http://www.binarytheme.com/" target="_blank">BinaryTheme.com</a> -->
+    </div>
+    <!-- /. FOOTER  -->
+    <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
+    <!-- JQUERY SCRIPTS -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="assets/js/bootstrap.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="assets/js/jquery.metisMenu.js"></script>
+       <!-- CUSTOM SCRIPTS -->
+    <script src="assets/js/custom.js"></script>
+    <script src="assets/js/ValidateEmail.js"></script>
+
+</div>
+</body>
+</html>

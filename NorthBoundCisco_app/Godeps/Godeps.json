@@ -1,0 +1,26 @@
+{
+	"ImportPath": "_/C_/Users/Sanjay/go",
+	"GoVersion": "go1.5.1",
+	"Packages": [
+		"Havels"
+	],
+	"Deps": [
+		{
+			"ImportPath": "Havels",
+			"Rev": "b9e8be40d0d3f87899245cd231b90acee90831a3"
+		},
+		{
+			"ImportPath": "dbUtils",
+			"Rev": "31a43714871636a7f04b51dddfb1ec0f680a4915"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-63-g11fc39a",
+			"Rev": "11fc39a580a008f1f39bb3d11d984fb34ed778d9"
+		},
+		{
+			"ImportPath": "tcpUtils",
+			"Rev": "b7b5e76d68d4340981685f87272c7308f133ac11"
+		}
+	]
+}

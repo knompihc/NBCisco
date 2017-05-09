@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ENERGY METER CONFIGURATION</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="js/auth.js"></script>
+	<script src="js/energystore.js"></script>
+	<script src="dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="dist/sweetalert.css">
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+       <!--CUSTOM BASIC STYLES-->
+    <link href="assets/css/basic.css" rel="stylesheet" />
+    <!--CUSTOM MAIN STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+	<link href="../havelsJscript/jquery.datetimepicker.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="./jquery.datetimepicker.css"/>
+
+<script>
+
+</script>
+
+</head>
+<body>
+
+<div id="wrapper" class="hidden">
+    <nav class="navbar navbar-default navbar-cls-top overlay_header" role="navigation" style="margin-bottom: 0;text-align: center;background-color: #E71A3B;">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="index.html">
+                <img src="assets/img/logo.jpg" style="height:75px;width:150px">
+            </a>
+        </div>
+        </p>
+        <span style="vertical-align: middle;font-size:200%;color:white"><b>Havells Street Light Management System</b></span>
+
+        <div class="header-right">
+
+            <table style="font-size: 10px">
+                <tr>
+                    <td>Welcome &nbsp;<a href="#" style="color: white" id="uid"></a></td>
+                    <td rowspan="2"><span style="float: right;"> <a href="#" id="signout" class="btn btn-danger" title="Logout"><i class="fa fa-sign-out fa-2x"></i></a></span></td>
+                </tr>
+                <tr>
+                    <td>Contact Us: +91-80-28390897<span style="font-size: 13px">/</span>8&nbsp;</td>
+                </tr>
+            </table>
+        </div>
+    </nav>
+    <!-- /. NAV TOP  -->
+    <div class="overlay">
+        <nav class="navbar-default navbar-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav" id="main-menu">
+                    <!-- <li>
+                        <div class="user-img-div">
+                            <img src="assets/img/user.png" class="img-thumbnail" />
+
+                            <div class="inner-text">
+                                Jhon Deo Alex
+                            <br />
+                                <small>Last Login : 2 Weeks Ago </small>
+                            </div>
+                        </div>
+
+                    </li>
+ -->
+
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard "></i>MAIN MENU</a>
+                    </li>
+                    <li>
+                        <a href="map-view.html"><i class="fa fa-globe "></i>MAP VIEW </a>
+                    </li>
+                    <li>
+                        <a  href="scheduled.html"><i class="fa fa-calendar "></i>MANAGE SCHEDULES </a>
+                    </li>
+                    <li>
+                        <a  href="configure.html"><i class="fa fa-paperclip "></i>ATTACH SCHEDULE </a>
+                    </li>
+                    <li>
+                        <a href="inventory.html"><i class="fa fa-gavel "></i>SPARE INVENTORY</a>
+                    </li>
+                    <li>
+                        <a href="report.html"><i class="fa fa-bar-chart "></i>REPORTS AND ALERTS </a>
+                    </li>
+                    <li>
+                        <a  class="active-menu" href="energystore.html"><i class="fa fa-bolt"></i>ENERGY METER CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a  href="graph.html"><i class="fa fa-line-chart"></i></i>ENERGY METER REPORTS </a>
+                    </li>
+                    <li>
+                        <a href="zone.html"><i class="fa fa-wrench"></i>ZONE CONFIGURATION </a>
+                    </li>
+					<li>
+						<a href="group.html"><i class="fa fa-group"></i>GROUP CONFIGURATION </a>
+					</li>
+					<li>
+						<a href="support.html"><i class="fa fa-phone-square"></i>SUPPORT </a>
+					</li>
+					<li id="cfg" class="hidden">
+						<a href="admintool.html"><i class="fa fa-user"></i>ADMIN TOOL </a>
+					</li>
+					<li>
+						<a href="analytics.html"><i class="fa fa-pie-chart"></i>ANALYTICS </a>
+					</li>
+					<li style="height: 50px">
+					</li>
+                </ul>
+            </div>
+
+        </nav>
+    </div>
+ <!-- /. NAV SIDE  -->
+   <div id="page-wrapper" name="energy_main">  
+    <div id="page-inner" >
+			<span style="float: right;height: 12px"><iframe src="http://free.timeanddate.com/clock/i4ztv3ts/n438/fs10/tct/pct/ahr/fti/tt0/th1/ta1" frameborder="0" width="235" height="13" allowTransparency="true"></iframe></span> 
+		<ul class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#commun">ADD NEW COMMUNICATION PARAMS</a></li>
+            <li><a data-toggle="tab" href="#vis">ADD NEW POLLING PARAMS</a></li>
+			<li><a data-toggle="tab" href="#query1">ADD Modbus Query</a></li>
+        </ul>
+		<div id="aid" class="row" style="margin:0 auto;width:85%">
+		<div class="tab-content">
+				<div id="commun" class="tab-pane fade in active">
+					<div  class="panel-group" style=" position: relative;margin: auto; margin-top: 20px;width: 100%;">
+						<div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top: 20px;width: 100%;">
+								<div class="panel-heading" style="text-align:center;font-weight: bold">ADD NEW COMMUNICATION PARAMS<span id="help" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+								<!-- /.col-lg-12 -->
+							<div name="add_inven" class="panel-body" style="padding: 0px">
+								<form id="Communicationparams"  class = "form-horizontal"  style="margin:0 auto;width:80%;" >
+									<div  id="commun_params" class="jumbotron" style="background-color:white; align:right;float:left;width:100%">
+										<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+											<span class="input-group-addon" style="width: 30%">Baud Rate</span>
+											<select name="baud_rate" class="form-control" required id ="baud">
+												<option value="">Select Baud Rate</option>
+												<option value="01">1200</option>
+												<option value="02">2400</option>
+												<option value="03">4800</option>
+												<option value="04">9600</option>
+												<option value="05">19200</option>
+												<option value="06">38400</option>
+												<option value="07">57600</option>
+												<option value="08">115200</option>
+											</select>			
+										</div>
+										<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+											<span class="input-group-addon" style="width: 30%">Data Bits</span>
+											<select name="energy_data" class="form-control" required id ="data">
+												<option value="">Select Data Bits</option>											
+												<option value="08">8 bit</option>
+												<option value="09">9 bit</option>
+											</select>											
+										</div>
+										<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+											<span class="input-group-addon" style="width: 30%">Parity BIts</span>
+											<select name="energy_parity" class="form-control" required id ="parity">
+												<option value="">Select Parity</option>
+												<option value="01">No Parity</option>											
+												<option value="02">Odd Parity</option>
+												<option value="03">Even Parity</option>
+											</select>											
+										</div>									
+										<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+											<span class="input-group-addon" style="width: 30%">Stop Bits</span>
+											<select name="energy_stop" class="form-control" required id ="stop">
+												<option value="">Select Stop Bits</option>
+												<option value="02">0.5</option>											
+												<option value="01">1</option>
+												<option value="04">1.5</option>
+												<option value="03">2</option>
+											</select>											
+										</div>
+											<center><input  type="submit" class="btn btn-info addcommunparams" value="Add Parameters"></center>
+									</div>
+								</form>
+							</div>
+						</div>	
+					</div>
+				</div>	
+				<div id="vis" class="tab-pane fade">
+					<div  class="panel-group" style=" position: relative;margin: auto; margin-top: 20px;width: 100%;">					
+						<div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;width: 100%;">
+							<div class="panel-heading" style="text-align:center;font-weight: bold">ADD POLLING PARAMS<span id="help" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+							<!-- /.col-lg-12 -->
+							<div  class="panel-body" style="padding: 0px;">
+								<form id="Polingparams" name="pollingparamsform" style="margin:0 auto;width:80%;" >
+									<div  class="panel-group" style=" position: relative;width: 100%">
+										<div  id="inventory" class="jumbotron" style="background-color:white; align:right;float:left;width:100%">
+											<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+												<span class="input-group-addon" style="width: 30%">Enable/Disable</span>									
+													<select name="packet_enable" class="form-control" required id ="packet_enable">
+														<option value="0">Default</option>											
+														<option value="1">Enable</option>
+														<option value="0">Disable</option>
+													</select>												
+											</div>
+											<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+												<span class="input-group-addon" style="width: 30%">Polling Rate</span>									
+												<input class="form-control"  type="number"  name="polling_rate" required placeholder="Enter Polling Rate" id ="polling_rate" min="0">																					
+											</div>
+											<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+												<span class="input-group-addon" style="width: 30%">Response Rate</span>									
+												<input class="form-control"  type="number"  name="response_rate" required placeholder="Enter Response Rate" id ="response_rate" min="0">
+											</div>	
+											<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+												<span class="input-group-addon" style="width: 30%">Device TimeOut</span>									
+												<input class="form-control"  type="number"  name="time_out" required placeholder="Enter Device Time Out" id ="time_out" min="0">
+											</div>	
+											<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+												<span class="input-group-addon" style="width: 30%">Device Id</span>
+												<input class="form-control"  type="number"  name="device_id" required placeholder="Enter Device Id" id="device_id" min="0">
+											</div>												
+
+													
+												<center><input  type="submit" class="btn btn-info addinven" value="Add Polling Params"></center>
+										</div>								
+									</div >
+								</form>
+							</div>
+							
+						</div>
+					</div>
+				</div>
+	<div id="query1" class="tab-pane fade">
+		<div  class="panel-group" style=" position: relative;margin: auto; margin-top: 20px;width: 100%;">												
+			<div  class="panel panel-primary col-sm-6" style="padding: 0; margin: 0;margin-top: 20px;align:right;float:left;width:100%">
+				<input type="text" value="0" class="hidden" id="pi">
+				<div  class="panel-heading" style="text-align:center;font-weight: bold">ADD MODBUS QUERY<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+				<form id="AddEnergyParameter" name="energyform"  style="margin:0 auto;width:80%;">
+					<div id="configureData" class="jumbotron" style="background-color:white; align:right;float:left;width:100%">
+						<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+							<span class="input-group-addon" style="width: 30%">Device ID</span>
+								<input id="devid" type="number" class="form-control" name="DeviceID" placeholder="Modbus device ID for the Energy Meter" required min="0">
+						</div>
+						<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+							<span class="input-group-addon" style="width: 30%">Query Length</span>
+							<input id="len" type="number" class="form-control" name="Length" placeholder="Modbus Query Length" required min="0">
+						</div>
+						<div class="input-group" style="width: 100%;margin: auto;margin-top: 20px;margin-bottom: 30px">
+							<span class="input-group-addon" style="width: 30%">Modbus Query</span>
+							<input type="text" id="query" class="form-control" name="Query" placeholder="Modbus Query for reading the Energy Meter" required>
+						</div>
+						<center>
+						<input type="submit" class="btn btn-info"  value="Submit">
+						</center>			
+					</div >
+				</form>
+			</div>
+		</div>	
+	</div>
+		</div>
+            <!-- /. ROW  -->
+    </div>
+</div>
+             <!-- Main DIV-->
+</div>
+    <div id="footer-sec">
+    </div>
+    <!-- /. FOOTER  -->
+    <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
+    <!-- JQUERY SCRIPTS -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="assets/js/bootstrap.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="assets/js/jquery.metisMenu.js"></script>
+       <!-- CUSTOM SCRIPTS -->
+    <script src="assets/js/custom.js"></script>
+
+</body>
+</html>

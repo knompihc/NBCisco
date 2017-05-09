@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spare Inventory</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="js/auth.js"></script>
+	<script src="js/inventory.js"></script>
+	<script src="dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="dist/sweetalert.css">
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+       <!--CUSTOM BASIC STYLES-->
+    <link href="assets/css/basic.css" rel="stylesheet" />
+    <!--CUSTOM MAIN STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+	<link href="../havelsJscript/jquery.datetimepicker.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="./jquery.datetimepicker.css"/>
+    <style>
+                .modal {
+            display:    none;
+            position:   fixed;
+            z-index:    10000000000;
+            top:        0;
+            left:       0;
+            height:     100%;
+            width:      100%;
+            background: rgba( 255, 255, 255, .7 )
+            url('images/39.GIF')
+            50% 50%
+            no-repeat;
+        }
+        body.loading {
+            overflow: hidden;
+        }
+
+        /* Anytime the body has the loading class, our
+           modal element will be visible */
+        body.loading .modal {
+            display: block;
+        }
+
+        .btn-arrow-right,
+        .btn-arrow-left {
+            position: relative;
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+        .btn-arrow-right {
+            padding-left: 36px;
+        }
+        .btn-arrow-left {
+            padding-right: 36px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after,
+        .btn-arrow-left:before,
+        .btn-arrow-left:after { /* make two squares (before and after), looking similar to the button */
+            content:"";
+            position: absolute;
+            top: 5px; /* move it down because of rounded corners */
+            width: 22px; /* same as height */
+            height: 22px; /* button_outer_height / sqrt(2) */
+            background: inherit; /* use parent background */
+            border: inherit; /* use parent border */
+            border-left-color: transparent; /* hide left border */
+            border-bottom-color: transparent; /* hide bottom border */
+            border-radius: 0px 4px 0px 0px; /* round arrow corner, the shorthand property doesn't accept "inherit" so it is set to 4px */
+            -webkit-border-radius: 0px 4px 0px 0px;
+            -moz-border-radius: 0px 4px 0px 0px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after {
+            transform: rotate(45deg); /* rotate right arrow squares 45 deg to point right */
+            -webkit-transform: rotate(45deg);
+            -moz-transform: rotate(45deg);
+            -o-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+        }
+        .btn-arrow-left:before,
+        .btn-arrow-left:after {
+            transform: rotate(225deg); /* rotate left arrow squares 225 deg to point left */
+            -webkit-transform: rotate(225deg);
+            -moz-transform: rotate(225deg);
+            -o-transform: rotate(225deg);
+            -ms-transform: rotate(225deg);
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:before { /* align the "before" square to the left */
+            left: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:after { /* align the "after" square to the right */
+            right: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:before { /* bring arrow pointers to front */
+            z-index: 1;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:after { /* hide arrow tails background */
+            background-color: white;
+        }
+        .but {
+            width: 70px;
+            height: 70px;
+            font-size: 18px;
+            line-height: 1.33;
+            border-radius: 50px;
+            padding-top: 23px;
+            position: fixed;
+            bottom: 0;
+            right: 50px;
+            z-index: 9999;
+        }
+        .btn-info {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+    </style>
+<script>
+
+</script>
+
+</head>
+<body>
+
+<div id="wrapper" class="hidden">
+    <nav class="navbar navbar-default navbar-cls-top overlay_header" role="navigation" style="margin-bottom: 0;text-align: center;background-color: #E71A3B;">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="index.html">
+                <img src="assets/img/logo.jpg" style="height:75px;width:150px">
+            </a>
+        </div>
+        </p>
+        <span style="vertical-align: middle;font-size:200%;color:white"><b>Havells Street Light Management System</b></span>
+
+        <div class="header-right">
+            <table style="font-size: 10px">
+                <tr>
+                    <td>Welcome &nbsp;<a href="#" style="color: white" id="uid"></a></td>
+                    <td rowspan="2"><span style="float: right;"> <a href="#" id="signout" class="btn btn-danger" title="Logout"><i class="fa fa-sign-out fa-2x"></i></a></span></td>
+                </tr>
+                <tr>
+                    <td>Contact Us: +91-80-28390897<span style="font-size: 13px">/</span>8&nbsp;</td>
+                </tr>
+            </table>
+        </div>
+    </nav>
+    <!-- /. NAV TOP  -->
+    <div class="overlay">
+        <nav class="navbar-default navbar-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav" id="main-menu">
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard "></i>MAIN MENU</a>
+                    </li>
+                    <li>
+                        <a href="map-view.html"><i class="fa fa-globe "></i>MAP VIEW </a>
+                    </li>
+                    <li>
+                        <a  href="scheduled.html"><i class="fa fa-calendar "></i>MANAGE SCHEDULES </a>
+                    </li>
+                    <li>
+                        <a  href="configure.html"><i class="fa fa-paperclip "></i>ATTACH SCHEDULE </a>
+                    </li>
+                    <li>
+                        <a class="active-menu" href="inventory.html"><i class="fa fa-gavel "></i>SPARE INVENTORY</a>
+                    </li>
+                    <li>
+                        <a href="report.html"><i class="fa fa-bar-chart "></i>REPORTS AND ALERTS </a>
+                    </li>
+                    <li>
+                        <a  href="energystore.html"><i class="fa fa-bolt"></i>ENERGY METER CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a  href="graph.html"><i class="fa fa-line-chart"></i></i>ENERGY METER REPORTS </a>
+                    </li>
+                    <li>
+                        <a href="zone.html"><i class="fa fa-wrench"></i>ZONE CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a href="group.html"><i class="fa fa-group"></i>GROUP CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a href="support.html"><i class="fa fa-phone-square"></i>SUPPORT </a>
+                    </li>
+                    <li id="cfg" class="hidden">
+                        <a href="admintool.html"><i class="fa fa-user"></i>ADMIN TOOL </a>
+                    </li>
+                    <li>
+                        <a href="analytics.html"><i class="fa fa-pie-chart"></i>ANALYTICS </a>
+                    </li>
+                    <li style="height: 50px">
+                    </li>
+                </ul>
+            </div>
+
+        </nav>
+    </div>
+ <!-- /. NAV SIDE  -->
+   <div id="page-wrapper" name="inven_main">
+    <div id="page-inner" >
+        <span style="float: right;height: 12px"><iframe src="http://free.timeanddate.com/clock/i4ztv3ts/n438/fs10/tct/pct/ahr/fti/tt0/th1/ta1" frameborder="0" width="235" height="13" allowTransparency="true"></iframe></span>
+
+        <ul class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#ads">ADD NEW INVENTORY TYPE</a></li>
+            <li><a data-toggle="tab" href="#vis">UPDATE  INVENTORY QUANTITY</a></li>
+        </ul>
+            <!--<div class="row">
+                <div class="col-md-12">
+                    <h1 class="page-head-line">SPARE INVENTORY</h1>
+                    &lt;!&ndash; <h1 class="page-subhead-line">This is dummy text , you can replace it with your original text. </h1> &ndash;&gt;
+                </div>
+            </div>-->
+                <!-- /. ROW  -->
+		<div  class="modal" ></div>
+        <div id="aid" class="row" style="margin:0 auto;width:85%">
+        <div class="tab-content">
+            <div id="ads" class="tab-pane fade in active">
+
+            <div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top: 20px">
+                <div class="panel-heading" style="text-align:center;font-weight: bold">ADD NEW INVENTORY TYPE<span id="help" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+                    <!-- /.col-lg-12 -->
+                    <div name="add_inven" class="panel-body" style="padding: 0px">
+			            <div id="suc" class="alert alert-success hidden" style="text-align:center;">
+							<a href="#" class="close"  aria-label="close">&times;</a>
+							<span id="sucmsg"><strong>Saved Successfully!</strong></span>
+						</div>
+						<div id="dan" class="alert alert-danger hidden" style="text-align:center;">
+							<a href="#" class="close"  aria-label="close">&times;</a>
+							 <span id="failmsg"><strong>Some Problem In Saving!!</strong></span>
+						</div>
+						<form id="inventory1" style="margin:0 auto;width:100%;" >
+							<div  class="panel-group" style=" position: relative">
+								<div  id="inventory" class="jumbotron" style="background-color:white; align:right;float:left;width:100%">
+									<div class="form-group">
+									<label for="inventory_type">Inventory Type</label>
+										<input type="text" class="form-control"  name="inventory_type" required placeholder="Enter Inventory Type" id ="type">
+									</div>
+									<div class="form-group">
+									<label for="inventory_desc">Inventory Description</label>
+										<input class="form-control"  type="text"  name="inventory_desc" required placeholder="Enter Inventory Description" id ="desc">
+									</div>
+										<center><input  type="submit" class="btn btn-info addinven" value="Add Inventory"></center>
+								</div>								
+							</div >
+						</form>
+					</div>
+            </div>	</div>
+            <div id="vis" class="tab-pane fade">
+				<div  class="panel-group" style=" position: relative;margin: auto;width: 80%;">
+					<div  name="update_inven" class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top:20px ">
+						<input type="text" value="0" class="hidden" id="pi">
+						<div  class="panel-heading" style="text-align:center;font-weight: bold">UPDATE  INVENTORY QUANTITY<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+						<div name="vi" class="panel-body" id ='inven' style="padding: 0px">
+						</div>
+						<div id="ne" style="float: right;;margin-right: 20px" class="btn btn-primary btn-arrow-right">Next</div>
+						<div id="pr" style="float: left;;margin-left: 20px" class="btn btn-primary btn-arrow-left">Prev</div>
+					</div>
+				</div></div></div>
+			</div>
+        </div>
+            <!-- /. ROW  -->
+    </div>
+</div>
+             <!-- Main DIV-->
+
+    <div id="footer-sec">
+    </div>
+    <!-- /. FOOTER  -->
+    <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
+    <!-- JQUERY SCRIPTS -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="assets/js/bootstrap.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="assets/js/jquery.metisMenu.js"></script>
+       <!-- CUSTOM SCRIPTS -->
+    <script src="assets/js/custom.js"></script>
+    
+</div>
+
+</body>
+</html>
