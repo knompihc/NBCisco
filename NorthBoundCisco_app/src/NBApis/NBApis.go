@@ -628,7 +628,7 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 		//scanninng data from the query result
 		for rows.Next() {
 			//var zid, zname, sguid, sguname, scuid, scuname, lat, lng string
-			var sguid, sguname, scuid, scuname, lat, lng string
+			var sguid, sguname, scuid, scuname, lat, lng, sched_id string
 			var st uint64
 			st = 10
 			//rows.Scan(&zid, &zname, &sguid, &sguname, &scuid, &scuname, &lat, &lng, &st)
@@ -637,6 +637,35 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 			logger.Println("STATUS before=", sta)
 			sta = sta & 3
 			logger.Println("STATUS=", sta)
+			//To get schedule Id
+			statement := "SELECT ScheduleID FROM scuconfigure where scuid='" + scuid + "'"
+
+			logger.Println(statement)
+			rows, err := dbController.Db.Query(statement)
+			defer rows.Close()
+			if err != nil {
+				logger.Println("Error quering database  for Schedule Id")
+				logger.Println(err)
+				ans.Response_status = "fail"
+				ans.Data.Message = "Something went wrong!!"
+				a, err := json.Marshal(ans)
+				if err != nil {
+					logger.Println("Error in json.Marshal")
+					logger.Println(err)
+				} else {
+					w.Write(a)
+				}
+				logger.Println("response status", ans.Response_status)
+				return
+			} else {
+
+				for rows.Next() {
+					rows.Scan(&sched_id)
+				}
+
+				rows.Close()
+			}
+
 			for sguKey, sguData := range NBsys {
 
 				if sguKey == sguid {
@@ -646,7 +675,7 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 						scuData["location_lat"] = lat
 						scuData["location_lng"] = lng
 						scuData["status"] = strconv.FormatUint(sta, 10)
-						scuData["schedule_id"] = ""
+						scuData["schedule_id"] = sched_id
 						if scuKey == "scu1" {
 							delete(sguData, "scu1")
 							sguData[scuid] = scuData
@@ -670,7 +699,7 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 							scuData["location_lat"] = lat
 							scuData["location_lng"] = lng
 							scuData["status"] = strconv.FormatUint(sta, 10)
-							scuData["schedule_id"] = ""
+							scuData["schedule_id"] = sched_id
 							if scuKey == "scu1" {
 								delete(sguData, "scu1")
 								sguData[scuid] = scuData
