@@ -1,0 +1,136 @@
+!<arch>
+__.PKGDEF       0           0     0     644     10087     `
+go object linux amd64 go1.4.2 X:precisestack
+
+$$
+package tcpServer
+	import log "log"
+	import net "net"
+	import runtime "runtime"
+	import time "time"
+	type @"net".Addr interface { Network() (? string); String() (? string) }
+	type @"time".zone struct { @"time".name string; @"time".offset int; @"time".isDST bool }
+	type @"time".zoneTrans struct { @"time".when int64; @"time".index uint8; @"time".isstd bool; @"time".isutc bool }
+	type @"time".Location struct { @"time".name string; @"time".zone []@"time".zone; @"time".tx []@"time".zoneTrans; @"time".cacheStart int64; @"time".cacheEnd int64; @"time".cacheZone *@"time".zone }
+	func (@"time".lÂ·2 *@"time".Location "esc:0x0") String () (? string)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x0") @"time".firstZoneUsed () (? bool)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x2") @"time".get () (? *@"time".Location)
+	func (@"time".lÂ·6 *@"time".Location "esc:0x1") @"time".lookup (@"time".secÂ·7 int64) (@"time".nameÂ·1 string, @"time".offsetÂ·2 int, @"time".isDSTÂ·3 bool, @"time".startÂ·4 int64, @"time".endÂ·5 int64)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x0") @"time".lookupFirstZone () (? int)
+	func (@"time".lÂ·4 *@"time".Location "esc:0x0") @"time".lookupName (@"time".nameÂ·5 string "esc:0x0", @"time".unixÂ·6 int64) (@"time".offsetÂ·1 int, @"time".isDSTÂ·2 bool, @"time".okÂ·3 bool)
+	type @"time".Duration int64
+	func (@"time".dÂ·2 @"time".Duration) Hours () (? float64) { var @"time".hourÂ·3 @"time".Duration; ; @"time".hourÂ·3 = @"time".dÂ·2 / @"time".Duration(0x34630B8A000); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0x34630B8A000); return float64(@"time".hourÂ·3) + float64(@"time".nsecÂ·4) * 0x9C5FFF26ED75Fp-93 }
+	func (@"time".dÂ·2 @"time".Duration) Minutes () (? float64) { var @"time".minÂ·3 @"time".Duration; ; @"time".minÂ·3 = @"time".dÂ·2 / @"time".Duration(0xDF8475800); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0xDF8475800); return float64(@"time".minÂ·3) + float64(@"time".nsecÂ·4) * 0x9299FF347E9E9p-87 }
+	func (@"time".dÂ·2 @"time".Duration) Nanoseconds () (? int64) { return int64(@"time".dÂ·2) }
+	func (@"time".dÂ·2 @"time".Duration) Seconds () (? float64) { var @"time".secÂ·3 @"time".Duration; ; @"time".secÂ·3 = @"time".dÂ·2 / @"time".Duration(0x3B9ACA00); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0x3B9ACA00); return float64(@"time".secÂ·3) + float64(@"time".nsecÂ·4) * 0x112E0BE826D695p-82 }
+	func (@"time".dÂ·2 @"time".Duration) String () (? string)
+	type @"time".Month int
+	func (@"time".mÂ·2 @"time".Month) String () (? string) { return @"time".months[@"time".mÂ·2 - @"time".Month(0x1)] }
+	type @"time".Weekday int
+	func (@"time".dÂ·2 @"time".Weekday) String () (? string) { return @"time".days[@"time".dÂ·2] }
+	type @"time".Time struct { @"time".sec int64; @"time".nsec int32; @"time".loc *@"time".Location }
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") Add (@"time".dÂ·3 @"time".Duration) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") AddDate (@"time".yearsÂ·3 int, @"time".monthsÂ·4 int, @"time".daysÂ·5 int) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") After (@"time".uÂ·3 @"time".Time "esc:0x0") (? bool) { return @"time".tÂ·2.@"time".sec > @"time".uÂ·3.@"time".sec || @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec > @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Before (@"time".uÂ·3 @"time".Time "esc:0x0") (? bool) { return @"time".tÂ·2.@"time".sec < @"time".uÂ·3.@"time".sec || @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec < @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·4 @"time".Time "esc:0x0") Clock () (@"time".hourÂ·1 int, @"time".minÂ·2 int, @"time".secÂ·3 int)
+	func (@"time".tÂ·4 @"time".Time "esc:0x0") Date () (@"time".yearÂ·1 int, @"time".monthÂ·2 @"time".Month, @"time".dayÂ·3 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Day () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Equal (@"time".uÂ·3 @"time".Time "esc:0x0") (? bool) { return @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec == @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Format (@"time".layoutÂ·3 string "esc:0x0") (? string)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x0") GobDecode (@"time".dataÂ·3 []byte "esc:0x0") (? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x0") GobEncode () (? []byte, ? error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Hour () (? int)
+	func (@"time".tÂ·3 @"time".Time "esc:0x0") ISOWeek () (@"time".yearÂ·1 int, @"time".weekÂ·2 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") In (@"time".locÂ·3 *@"time".Location "esc:0x2") (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") IsZero () (? bool) { return @"time".tÂ·2.@"time".sec == 0x0 && @"time".tÂ·2.@"time".nsec == 0x0 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") Local () (? @"time".Time) { @"time".tÂ·2.@"time".loc = @"time".Local; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") Location () (? *@"time".Location) { var @"time".lÂ·3 *@"time".Location; ; @"time".lÂ·3 = @"time".tÂ·2.@"time".loc; if @"time".lÂ·3 == nil { @"time".lÂ·3 = @"time".UTC }; return @"time".lÂ·3 }
+	func (@"time".tÂ·3 @"time".Time "esc:0x0") MarshalBinary () (? []byte, ? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x0") MarshalJSON () (? []byte, ? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x0") MarshalText () (? []byte, ? error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Minute () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Month () (? @"time".Month)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Nanosecond () (? int) { return int(@"time".tÂ·2.@"time".nsec) }
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") Round (@"time".dÂ·3 @"time".Duration) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Second () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") String () (? string)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Sub (@"time".uÂ·3 @"time".Time "esc:0x0") (? @"time".Duration)
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") Truncate (@"time".dÂ·3 @"time".Duration) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x2") UTC () (? @"time".Time) { @"time".tÂ·2.@"time".loc = @"time".UTC; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Unix () (? int64) { return @"time".tÂ·2.@"time".sec + -0xE7791F700 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") UnixNano () (? int64) { return (@"time".tÂ·2.@"time".sec + -0xE7791F700) * 0x3B9ACA00 + int64(@"time".tÂ·2.@"time".nsec) }
+	func (@"time".tÂ·2 *@"time".Time "esc:0x0") UnmarshalBinary (@"time".dataÂ·3 []byte "esc:0x0") (? error)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x0") UnmarshalJSON (@"time".dataÂ·3 []byte "esc:0x0") (@"time".errÂ·1 error)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x0") UnmarshalText (@"time".dataÂ·3 []byte "esc:0x0") (@"time".errÂ·1 error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Weekday () (? @"time".Weekday)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") Year () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") YearDay () (? int)
+	func (@"time".tÂ·3 @"time".Time "esc:0x0") Zone () (@"time".nameÂ·1 string, @"time".offsetÂ·2 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x0") @"time".abs () (? uint64)
+	func (@"time".tÂ·5 @"time".Time "esc:0x0") @"time".date (@"time".fullÂ·6 bool) (@"time".yearÂ·1 int, @"time".monthÂ·2 @"time".Month, @"time".dayÂ·3 int, @"time".ydayÂ·4 int)
+	func (@"time".tÂ·4 @"time".Time "esc:0x1") @"time".locabs () (@"time".nameÂ·1 string, @"time".offsetÂ·2 int, @"time".absÂ·3 uint64)
+	type @"net".Conn interface { Close() (? error); LocalAddr() (? @"net".Addr); Read(@"net".b []byte) (@"net".n int, @"net".err error); RemoteAddr() (? @"net".Addr); SetDeadline(@"net".t @"time".Time) (? error); SetReadDeadline(@"net".t @"time".Time) (? error); SetWriteDeadline(@"net".t @"time".Time) (? error); Write(@"net".b []byte) (@"net".n int, @"net".err error) }
+	import sync "sync" // indirect
+	type @"sync".Mutex struct { @"sync".state int32; @"sync".sema uint32 }
+	func (@"sync".mÂ·1 *@"sync".Mutex) Lock ()
+	func (@"sync".mÂ·1 *@"sync".Mutex) Unlock ()
+	import io "io" // indirect
+	type @"io".Writer interface { Write(@"io".p []byte) (@"io".n int, @"io".err error) }
+	type @"log".Logger struct { @"log".mu @"sync".Mutex; @"log".prefix string; @"log".flag int; @"log".out @"io".Writer; @"log".buf []byte }
+	func (@"log".lÂ·1 *@"log".Logger) Fatal (@"log".vÂ·2 ...interface {} "esc:0x0")
+	func (@"log".lÂ·1 *@"log".Logger) Fatalf (@"log".formatÂ·2 string "esc:0x0", @"log".vÂ·3 ...interface {} "esc:0x0")
+	func (@"log".lÂ·1 *@"log".Logger) Fatalln (@"log".vÂ·2 ...interface {} "esc:0x0")
+	func (@"log".lÂ·2 *@"log".Logger) Flags () (? int)
+	func (@"log".lÂ·2 *@"log".Logger) Output (@"log".calldepthÂ·3 int, @"log".sÂ·4 string "esc:0x0") (? error)
+	func (@"log".lÂ·1 *@"log".Logger) Panic (@"log".vÂ·2 ...interface {} "esc:0x0")
+	func (@"log".lÂ·1 *@"log".Logger) Panicf (@"log".formatÂ·2 string "esc:0x0", @"log".vÂ·3 ...interface {} "esc:0x0")
+	func (@"log".lÂ·1 *@"log".Logger) Panicln (@"log".vÂ·2 ...interface {} "esc:0x0")
+	func (@"log".lÂ·2 *@"log".Logger) Prefix () (? string)
+	func (@"log".lÂ·1 *@"log".Logger) Print (@"log".vÂ·2 ...interface {} "esc:0x0")
+	func (@"log".lÂ·1 *@"log".Logger) Printf (@"log".formatÂ·2 string "esc:0x0", @"log".vÂ·3 ...interface {} "esc:0x0")
+	func (@"log".lÂ·1 *@"log".Logger) Println (@"log".vÂ·2 ...interface {} "esc:0x0")
+	func (@"log".lÂ·1 *@"log".Logger) SetFlags (@"log".flagÂ·2 int)
+	func (@"log".lÂ·1 *@"log".Logger) SetPrefix (@"log".prefixÂ·2 string)
+	func (@"log".lÂ·1 *@"log".Logger "esc:0x0") @"log".formatHeader (@"log".bufÂ·2 *[]byte, @"log".tÂ·3 @"time".Time "esc:0x0", @"log".fileÂ·4 string "esc:0x0", @"log".lineÂ·5 int)
+	func @"".StartTcpServer (@"".clientFIFOÂ·1 chan @"net".Conn "esc:0x0", @"".loggÂ·2 *@"log".Logger)
+	func @"".init ()
+	var @"time".months [12]string
+	var @"time".days [7]string
+	var @"time".Local *@"time".Location
+	var @"time".UTC *@"time".Location
+
+$$
+ _go_.6          0           0     0     644     12783     `
+go object linux amd64 go1.4.2 X:precisestack
+
+!
+  go13ld
+net.atime.a
+log.a ş""".StartTcpServer     dH‹%    HD$¨H;Awè    ëåHìØ   H    H‰$H‹œ$è   H‰\$è    H    H,$H‰ïH‰ŞH¥H¥H    Hl$H‰ïH‰ŞH¥H¥è    H‹\$ H‰\$@H‹\$(H‰\$HH‹D$0H‹\$8H‰\$hHƒø H‰D$`„ï  H    H‹+H‰¬$    H‹kH‰¬$¨   Hœ$°   HÇ    HÇC    Hœ$°   Hƒû „¡  HÇÂ   HÇÁ   H‰œ$À   H‰”$È   H‰Œ$Ğ   H    H‰$Hœ$    H‰\$è    H‹L$H‹D$H‹œ$À   H‰$H‰Œ$€   H‰L$H‰„$ˆ   H‰D$è    H‹    H‰$H‹œ$À   H‰\$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    Hœ$°   HÇ    HÇC    Hœ$°   Hƒû „Â   HÇÁ   HÇÂ   H‰œ$À   H‰Œ$È   H‰”$Ğ   H‹\$`H‰$H‹\$hH‰\$è    H‹L$H‹D$H‹œ$À   H‰$H‰Œ$€   H‰L$H‰„$ˆ   H‰D$è    H‹    H‰$H‹œ$À   H‰\$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    H» ò*   H‰$è    é½ıÿÿ‰é7ÿÿÿ‰éXşÿÿH    H‹+H‰¬$    H‹kH‰¬$¨   Hœ$°   HÇ    HÇC    Hœ$°   Hƒû „*  HÇÂ   HÇÁ   H‰œ$À   H‰”$È   H‰Œ$Ğ   H    H‰$Hœ$    H‰\$è    H‹L$H‹D$H‹œ$À   H‰$H‰Œ$€   H‰L$H‰„$ˆ   H‰D$è    H‹    H‰$H‹œ$À   H‰\$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    H‹\$HH‰$H‹\$@H‹[ ÿÓH‹\$H‰\$pH‹\$H‰\$xH‹D$H‹\$ H‰\$XHƒø H‰D$P„Ü  H    H‹+H‰¬$    H‹kH‰¬$¨   Hœ$°   HÇ    HÇC    Hœ$°   Hƒû „  HÇÂ   HÇÁ   H‰œ$À   H‰”$È   H‰Œ$Ğ   H    H‰$Hœ$    H‰\$è    H‹L$H‹D$H‹œ$À   H‰$H‰Œ$€   H‰L$H‰„$ˆ   H‰D$è    H‹    H‰$H‹œ$À   H‰\$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    Hœ$°   HÇ    HÇC    Hœ$°   Hƒû „¯   HÇÂ   HÇÁ   H‰œ$À   H‰”$È   H‰Œ$Ğ   H‹\$PH‰$H‹\$XH‰\$è    H‹L$H‹D$H‹œ$À   H‰$H‰Œ$€   H‰L$H‰„$ˆ   H‰D$è    H‹    H‰$H‹œ$À   H‰\$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    éìıÿÿ‰éJÿÿÿ‰ékşÿÿH    H‹+H‰¬$    H‹kH‰¬$¨   Hœ$°   HÇ    HÇC    Hœ$°   Hƒû „  HÇÂ   HÇÁ   H‰œ$À   H‰”$È   H‰Œ$Ğ   H    H‰$Hœ$    H‰\$è    H‹L$H‹D$H‹œ$À   H‰$H‰Œ$€   H‰L$H‰„$ˆ   H‰D$è    H‹    H‰$H‹œ$À   H‰\$H‹œ$È   H‰\$H‹œ$Ğ   H‰\$è    H‹\$pH‰œ$   H‹\$xH‰œ$˜   H    H‰$H‹œ$à   H‰\$Hœ$   H‰\$è    H» ò*   H‰$è    éŒüÿÿ‰éîşÿÿ‰éÏûÿÿX
+      *  0runtime.morestack_noctxt   J  "".logger   v  .runtime.writebarrierptr   „  go.string."tcp"   ®  $go.string.":62000"   Ö  net.Listen   È  Jgo.string."Error starting TCP server"   ¢  type.string   Î  runtime.convT2E   ¸  2runtime.writebarrieriface   Æ  "".logger   ¦  *log.(*Logger).Println   ô  runtime.convI2E   Ş  2runtime.writebarrieriface   ì  "".logger   Ì	  *log.(*Logger).Println   ò	  time.Sleep   ¦
+  jgo.string."Server started. Listening for connections"   €  type.string   ¬  runtime.convT2E   –  2runtime.writebarrieriface   ¤  "".logger   „  *log.(*Logger).Println   ° 
+        Jgo.string."Error creating tcp client"   ø  type.string   ¤  runtime.convT2E     2runtime.writebarrieriface   œ  "".logger   ü  *log.(*Logger).Println   Ê  runtime.convI2E   ´  2runtime.writebarrieriface   Â  "".logger   ¢  *log.(*Logger).Println   Ö  Lgo.string."Accepted a new connection."   °  type.string   Ü  runtime.convT2E   Æ  2runtime.writebarrieriface   Ô  "".logger   ´  *log.(*Logger).Println   ö  $type.chan net.Conn   ¼  "runtime.chansend1   â  time.Sleep    °  D"".autotmp_0028  "type.interface {} "".autotmp_0027  *type.*[1]interface {} "".autotmp_0026  &type.[]interface {} "".autotmp_0025  "type.interface {} "".autotmp_0024  *type.*[1]interface {} "".autotmp_0023  &type.[]interface {} "".autotmp_0022  "type.interface {} "".autotmp_0021  *type.*[1]interface {} "".autotmp_0020  &type.[]interface {} "".autotmp_0019  "type.interface {} "".autotmp_0018  *type.*[1]interface {} "".autotmp_0017  &type.[]interface {} "".autotmp_0016  "type.interface {} "".autotmp_0015  *type.*[1]interface {} "".autotmp_0014  &type.[]interface {} "".autotmp_0013 ¯"type.interface {} "".autotmp_0011 /&type.[]interface {} "".autotmp_0010 type.net.Conn "".autotmp_0009  type.string "".autotmp_0008  (type.[1]interface {} "".autotmp_0007  (type.[1]interface {} "".autotmp_0006  type.string "".autotmp_0005  (type.[1]interface {} "".autotmp_0004  type.string "".autotmp_0003  (type.[1]interface {} "".autotmp_0002  (type.[1]interface {} "".autotmp_0001 otype.string "".autotmp_0000 O(type.[1]interface {} "".err type.error "".conn Ïtype.net.Conn "".err ïtype.error 
+"".ln ¯"type.net.Listener "".logg  type.*log.Logger "".clientFIFO  $type.chan net.Conn "°î  n4"SöÓö7öÓ	
+öD% R :ìlgl
+l¹lgllD  TgclocalsÂ·4897a01e6848108c01e68bc27367a40c TgclocalsÂ·71b6d776f3fdafa3f45c2bc83e1601e9   |/home/ajey/Streetcomm_WebServer_App/src/tcpServer/tcpServer.goş"".init  À  ¨dH‹%    H;awè    ëê¶    €û t¶    €ûuÃè    Æ    è    è    è    Æ    Ã
+         0runtime.morestack_noctxt   2  "".initdoneÂ·   J  "".initdoneÂ·   `  "runtime.throwinit   p "".initdoneÂ·   |  log.init   †  time.init     net.init   œ "".initdoneÂ·        ` ` ¦` 
+ /1 TgclocalsÂ·3280bececceccd33cb74587feedb1f9f TgclocalsÂ·3280bececceccd33cb74587feedb1f9f   |/home/ajey/Streetcomm_WebServer_App/src/tcpServer/tcpServer.goş4type..hash.[1]interface {} à  ÎdH‹%    H;awè    ëêHƒì0H‹L$H1ÀHÇD$    H‹l$ H9è}eH‰D$(H‰ÅH‰ÈHÁÀH»¿c»kïR H¯ØH‰ØH‹\$8Hƒû tDHkíHëH‰$HÇD$   H‰D$HH‰D$è    H‹L$H‹D$(HÿÀH‹l$ H9è|›H‰L$PHƒÄ0Ã‰ë¸
+         0runtime.morestack_noctxt   ü  (runtime.nilinterhash   @`  "".autotmp_0049 type.int "".autotmp_0048 type.int "".~r3 0type.uintptr "".h  type.uintptr "".s type.uintptr "".p  *type.*[1]interface {} `ˆ_` ° ° 
+ }3 TgclocalsÂ·2dc77d960dd3e4b3de2361f9cbd75783 TgclocalsÂ·3280bececceccd33cb74587feedb1f9f   |/home/ajey/Streetcomm_WebServer_App/src/tcpServer/tcpServer.goş0type..eq.[1]interface {} à  ÈdH‹%    H;awè    ëêHƒìX1ÀHÇD$(   H‹l$(H9è’   H‰D$0H‹\$hHƒû „–   H‰ÅHkíHëH‹H‹sH‹\$`Hƒû tvH‰ÅHkíHëH‹H‹SH9ÈuVH‰D$8H‰$H‰T$@H‰T$H‰L$HH‰L$H‰t$PH‰t$è    ¶\$ €û t H‹D$0HÿÀH‹l$(H9èŒnÿÿÿÆD$xHƒÄXÃÆD$x HƒÄXÃ‰ë†‰écÿÿÿ
+         0runtime.morestack_noctxt   Â  runtime.efaceeq   @°  "".autotmp_0053 ?"type.interface {} "".autotmp_0052 "type.interface {} "".autotmp_0051 _type.int "".autotmp_0050 Otype.int "".~r3 0type.bool "".s  type.uintptr "".q *type.*[1]interface {} "".p  *type.*[1]interface {} &°´¯°	¯° ğ ğ   P TgclocalsÂ·9c703c5c7b9c1932c840b69f8ebce236 TgclocalsÂ·44568aa369055d8938d809aa5d80843b   |/home/ajey/Streetcomm_WebServer_App/src/tcpServer/tcpServer.goşgo.string."tcp" 0  (               tcp    go.string."tcp"   ş$go.string.":62000" 0  .               :62000    $go.string.":62000"   şJgo.string."Error starting TCP server" `  T               Error starting TCP server    Jgo.string."Error starting TCP server"   şjgo.string."Server started. Listening for connections" €  t        )       Server started. Listening for connections    jgo.string."Server started. Listening for connections"   şJgo.string."Error creating tcp client" `  T               Error creating tcp client    Jgo.string."Error creating tcp client"   şLgo.string."Accepted a new connection." `  V               Accepted a new connection.    Lgo.string."Accepted a new connection."   şTgclocalsÂ·71b6d776f3fdafa3f45c2bc83e1601e9 €  €   &             ò     ò       ğ      ğ      ò     ò           »  ò   »  ò      ğ     ğ    ° ò   ° ò     °      şTgclocalsÂ·4897a01e6848108c01e68bc27367a40c ˆ  ˆ      
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+    şTgclocalsÂ·3280bececceccd33cb74587feedb1f9f           şTgclocalsÂ·3280bececceccd33cb74587feedb1f9f           ş*"".logger   type.*log.Logger   ş,"".initdoneÂ·  type.uint8   ş("".StartTcpServerÂ·f              """.StartTcpServer   ş4runtime.writebarrierptrÂ·f              .runtime.writebarrierptr   şnet.ListenÂ·f              net.Listen   ş$runtime.convT2EÂ·f              runtime.convT2E   ş8runtime.writebarrierifaceÂ·f              2runtime.writebarrieriface   ş0log.(*Logger).PrintlnÂ·f              *log.(*Logger).Println   ş$runtime.convI2EÂ·f              runtime.convI2E   ştime.SleepÂ·f              time.Sleep   ş(runtime.chansend1Â·f              "runtime.chansend1   ş"".initÂ·f              "".init   ş(runtime.throwinitÂ·f              "runtime.throwinit   şlog.initÂ·f              log.init   ştime.initÂ·f              time.init   şnet.initÂ·f              net.init   şbruntime.gcbits.0x88000000000000000000000000000000     ˆ                ş2go.string."chan net.Conn" @  <               chan net.Conn    2go.string."chan net.Conn"   ş$type.chan net.Conn °  °       RñÜV 2                                                                           runtime.algarray   0  bruntime.gcbits.0x88000000000000000000000000000000   P  2go.string."chan net.Conn"   p  6go.weak.type.*chan net.Conn   €  "runtime.zerovalue     type.net.Conn   şNgo.typelink.chan net.Conn/chan net.Conn              $type.chan net.Conn   şbruntime.gcbits.0xcc000000000000000000000000000000     Ì                ş0go.string."interface {}" @  :               interface {}    0go.string."interface {}"   ş"type.interface {} À  À       çW                                                                                   €  runtime.algarray   0  bruntime.gcbits.0xcc000000000000000000000000000000   P  0go.string."interface {}"   p  4go.weak.type.*interface {}   €  "runtime.zerovalue   À "type.interface {}   şbruntime.gcbits.0x48844400000000000000000000000000     H„D              ş4go.string."[]interface {}" @  >               []interface {}    4go.string."[]interface {}"   ş&type.[]interface {}            p“ê/                                                                     runtime.algarray   0  bruntime.gcbits.0x48844400000000000000000000000000   P  4go.string."[]interface {}"   p  8go.weak.type.*[]interface {}   €  "runtime.zerovalue     "type.interface {}   şRgo.typelink.[]interface {}/[]interface {}              &type.[]interface {}   şTgclocalsÂ·3280bececceccd33cb74587feedb1f9f           şTgclocalsÂ·2dc77d960dd3e4b3de2361f9cbd75783             şTgclocalsÂ·44568aa369055d8938d809aa5d80843b              şTgclocalsÂ·9c703c5c7b9c1932c840b69f8ebce236             ş<type..hashfunc.[1]interface {}              4type..hash.[1]interface {}   ş8type..eqfunc.[1]interface {}              0type..eq.[1]interface {}   ş2type..alg.[1]interface {}                        <type..hashfunc.[1]interface {}     8type..eqfunc.[1]interface {}   ş6go.string."[1]interface {}" @  @               [1]interface {}    6go.string."[1]interface {}"   ş(type.[1]interface {} À  À       P‘[ú                                                                                   2type..alg.[1]interface {}   0  bruntime.gcbits.0xcc000000000000000000000000000000   P  6go.string."[1]interface {}"   p  :go.weak.type.*[1]interface {}   €  "runtime.zerovalue     "type.interface {}      &type.[]interface {}   şVgo.typelink.[1]interface {}/[1]interface {}              (type.[1]interface {}   ş8go.string."*[1]interface {}" P  B               *[1]interface {}    8go.string."*[1]interface {}"   ş*type.*[1]interface {}            ¿¨5 6                                                                    runtime.algarray   0  bruntime.gcbits.0x88000000000000000000000000000000   P  8go.string."*[1]interface {}"   p  <go.weak.type.**[1]interface {}   €  "runtime.zerovalue     (type.[1]interface {}   şgo.string."log" 0  (               log    go.string."log"   ş$go.importpath.log.                       go.string."log"   şgo.string."net" 0  (               net    go.string."net"   ş$go.importpath.net.                       go.string."net"   ş&go.string."runtime" 0  0               runtime    &go.string."runtime"   ş,go.importpath.runtime.                       &go.string."runtime"   ş go.string."time" 0  *               time     go.string."time"   ş&go.importpath.time.                        go.string."time"   ş:type..hash.[1]interface {}Â·f              4type..hash.[1]interface {}   ş.runtime.nilinterhashÂ·f              (runtime.nilinterhash   ş,runtime.throwreturnÂ·f              &runtime.throwreturn   ş6type..eq.[1]interface {}Â·f              0type..eq.[1]interface {}   ş$runtime.efaceeqÂ·f              runtime.efaceeq   ş"runtime.zerovalue      ÿÿgo13ld 

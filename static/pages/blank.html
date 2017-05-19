@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="js/auth.js"></script>
+	<script src="js/inventory.js"></script>
+	<script src="js/ticketsupport.js"></script>
+	<script src="dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="dist/sweetalert.css">
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+       <!--CUSTOM BASIC STYLES-->
+    <link href="assets/css/basic.css" rel="stylesheet" />
+    <!--CUSTOM MAIN STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+	<link href="../havelsJscript/jquery.datetimepicker.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="./jquery.datetimepicker.css"/>
+    <style>
+                .modal {
+            display:    none;
+            position:   fixed;
+            z-index:    10000000000;
+            top:        0;
+            left:       0;
+            height:     100%;
+            width:      100%;
+            background: rgba( 255, 255, 255, .7 )
+            url('images/39.GIF')
+            50% 50%
+            no-repeat;
+        }
+        body.loading {
+            overflow: hidden;
+        }
+
+        /* Anytime the body has the loading class, our
+           modal element will be visible */
+        body.loading .modal {
+            display: block;
+        }
+
+        .btn-arrow-right,
+        .btn-arrow-left {
+            position: relative;
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+        .btn-arrow-right {
+            padding-left: 36px;
+        }
+        .btn-arrow-left {
+            padding-right: 36px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after,
+        .btn-arrow-left:before,
+        .btn-arrow-left:after { /* make two squares (before and after), looking similar to the button */
+            content:"";
+            position: absolute;
+            top: 5px; /* move it down because of rounded corners */
+            width: 22px; /* same as height */
+            height: 22px; /* button_outer_height / sqrt(2) */
+            background: inherit; /* use parent background */
+            border: inherit; /* use parent border */
+            border-left-color: transparent; /* hide left border */
+            border-bottom-color: transparent; /* hide bottom border */
+            border-radius: 0px 4px 0px 0px; /* round arrow corner, the shorthand property doesn't accept "inherit" so it is set to 4px */
+            -webkit-border-radius: 0px 4px 0px 0px;
+            -moz-border-radius: 0px 4px 0px 0px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after {
+            transform: rotate(45deg); /* rotate right arrow squares 45 deg to point right */
+            -webkit-transform: rotate(45deg);
+            -moz-transform: rotate(45deg);
+            -o-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+        }
+        .btn-arrow-left:before,
+        .btn-arrow-left:after {
+            transform: rotate(225deg); /* rotate left arrow squares 225 deg to point left */
+            -webkit-transform: rotate(225deg);
+            -moz-transform: rotate(225deg);
+            -o-transform: rotate(225deg);
+            -ms-transform: rotate(225deg);
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:before { /* align the "before" square to the left */
+            left: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:after { /* align the "after" square to the right */
+            right: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:before { /* bring arrow pointers to front */
+            z-index: 1;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:after { /* hide arrow tails background */
+            background-color: white;
+        }
+        .but {
+            width: 70px;
+            height: 70px;
+            font-size: 18px;
+            line-height: 1.33;
+            border-radius: 50px;
+            padding-top: 23px;
+            position: fixed;
+            bottom: 0;
+            right: 50px;
+            z-index: 9999;
+        }
+        .btn-info {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+    </style>
+<script>
+
+</script>
+
+</head>
+<body>
+
+<div id="wrapper" class="">
+    <nav class="navbar navbar-default navbar-cls-top overlay_header" role="navigation" style="margin-bottom: 0;text-align: center;background-color: #E71A3B;">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="index.html">
+                <img src="assets/img/logo.jpg" style="height:75px;width:150px">
+            </a>
+        </div>
+        </p>
+        <span style="vertical-align: middle;font-size:200%;color:white"><b>Havells Street Light Management System</b></span>
+
+        <div class="header-right">
+            <table style="font-size: 10px">
+                <tr>
+                    <td>Welcome &nbsp;<a href="#" style="color: white" id="uid"></a></td>
+                    <td rowspan="2"><span style="float: right;"> <a href="#" id="signout" class="btn btn-danger" title="Logout"><i class="fa fa-sign-out fa-2x"></i></a></span></td>
+                </tr>
+                <tr>
+                    <td><i>Contact Us: +91-80-41693018</i>&nbsp;</td>
+                </tr>
+            </table>
+        </div>
+    </nav>
+    <!-- /. NAV TOP  -->
+    <div class="overlay">
+        <nav class="navbar-default navbar-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav" id="main-menu">
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard "></i>MAIN MENU</a>
+                    </li>
+                    <li>
+                        <a href="map-view.html"><i class="fa fa-globe "></i>MAP VIEW </a>
+                    </li>
+                    <li>
+                        <a  href="scheduled.html"><i class="fa fa-calendar "></i>MANAGE SCHEDULES </a>
+                    </li>
+                    <li>
+                        <a  href="configure.html"><i class="fa fa-paperclip "></i>ATTACH SCHEDULE </a>
+                    </li>
+                    <li>
+                        <a  href="inventory.html"><i class="fa fa-gavel "></i>SPARE INVENTORY</a>
+                    </li>
+                    <li>
+                        <a href="report.html"><i class="fa fa-bar-chart "></i>REPORTS AND ALERTS </a>
+                    </li>
+                    <li>
+                        <a  href="energystore.html"><i class="fa fa-bolt"></i>ENERGY METER CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a  href="graph.html"><i class="fa fa-line-chart"></i></i>ENERGY METER REPORTS </a>
+                    </li>
+                    <li>
+                        <a class="active-menu" href="blank.html"><i class="fa fa-line-chart"></i></i>UPDATE AND SUPPORT </a>
+                    </li>					
+                </ul>
+            </div>
+
+        </nav>
+    </div>
+ <!-- /. NAV SIDE  -->
+<div id="page-wrapper" name="inven_main">
+    <div id="page-inner" >
+        <span style="float: right;height: 12px"><iframe src="http://free.timeanddate.com/clock/i4ztv3ts/n438/fs10/tct/pct/ahr/fti/tt0/th1/ta1" frameborder="0" width="235" height="13" allowTransparency="true"></iframe></span>
+
+        <ul class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#ads">FAQs</a></li>
+            <li><a data-toggle="tab" href="#vis">DIAGNOSTICS</a></li>
+			<li><a data-toggle="tab" href="#vis1">WRITE TO SUPPORT</a></li>
+			<li><a data-toggle="tab" href="#vis2">CHANGE PASSWORD</a></li>
+			<li><a data-toggle="tab" href="#vis3">CONTACT</a></li>
+        </ul>
+          
+		<div  class="modal" ></div>
+		<div id="aid" class="row" style="margin: auto;width:85%">
+			<div class="tab-content">
+				<div id="ads" class="tab-pane fade in active">
+
+					<div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top: 20px">
+						<div class="panel-heading" style="text-align:center;font-weight: bold">Frequently Asked Questions<span id="help" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+							<!-- /.col-lg-12 -->
+							<div name="add" class="panel-body" style="padding: 0px">
+							   
+								<form id="i1" style="margin:50px;width:100%;" >
+									<div  class="panel-group" style="text-align:left; margin:50px;position: relative">
+										<P>	Please go through these questions and their answers carefully, when in doubt, <br />
+											Latest values are not changing in browser? <br />
+											Following reasons can cause this issue, <br />
+											a. There is no power to factory unit or OLLO device. <br />
+											b. There is no mobile signal near factory unit. <br />
+											c. OLLO device may be disconnected from the measurement unit (sensor). <br />
+											I want to note measurements at a fixed time everyday, i.e. 0730 hours everyday? <br />
+											Define a new query group, with start interval same as desired time 0730 hours and query interval as 0000 hours. <br />
+										</P>
+									</div >
+								</form>
+							</div>
+					</div>	
+				</div>
+				<div id="vis" class="tab-pane fade">
+					<div  class="panel-group" style=" position: relative;margin: auto;width: 100%;">
+						<div  name="inven2" class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top:20px ">
+							<input type="text" value="0" class="hidden" id="pi">
+							<div  class="panel-heading" style="text-align:center;font-weight: bold">Diagnostics<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+							<div name="vi" class="panel-body" id ='inven2' style="padding: 0px"></div>
+							<form id="i2" style="margin:50px;width:100%;" >
+								<div  class="panel-group" style="text-align:left; margin:50px;position: relative">
+									<P>		Please go through these questions and their answers carefully, when in doubt, <br />
+											Latest values are not changing in browser? <br />
+											Following reasons can cause this issue, <br />
+											a. There is not power to factory unit or OLLO device. <br />
+											b. There is no mobile signal near factory unit. <br />
+											c. OLLO device may be disconnected from the measurement unit (meter). <br />
+											I want to note measurements at a fixed time everyday, i.e. 0730 hours everyday? <br />
+											Define a new query group, with start interval same as desired time 0730 hours and query interval as 0000 hours. <br />
+									</P>
+								</div >
+							</form>
+						</div>
+					</div>
+				</div>
+				
+				<div id="vis1" class="tab-pane fade">
+					<div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top: 20px">
+						<div  class="panel-heading" style="text-align:center;font-weight: bold">Write To Support<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+						<div id="fill">
+							<form id="supporter" style="margin: auto;width: 100%">
+								<div class="form-group" style="text-align:left; margin:50px;position: relative">
+									
+									<input id="subject" type="text" class="form-control" name = "supportsubject" required placeholder="Subject" style=" margin-bottom: 10px;">
+									<!-- <input id="category" type="text" class="form-control" required placeholder="Category" style=" margin-bottom: 10px;"> -->
+														<select id="category" name="supportcategory" class="form-control" required style=" margin-bottom: 10px;">
+															<option value="">Category</option>
+															<option value="Complement">Complement</option>
+															<option value="Suggestion">Suggestion</option>
+															<option value="Issue">Issue</option>
+														</select>
+									<input id="support_mail" type = "email" class = "form-control" name = "supportemail" placeholder = "Email id" required style=" margin-bottom: 10px;">
+									<input id="contactno" pattern="\d*" minLength="10" maxlength="10" class="form-control" name = "supportcontact" required placeholder="Contact No." style=" margin-bottom: 10px;">
+									<textarea input id="description" class="form-control" name = "supportdescription" required placeholder="Description" style=" margin-bottom: 40px;height:100px" minlength:10 maxlength:140></textarea>
+		
+									<!-- <div class = "col-sm-offset-3 col-sm-8"><br></div> -->
+									<input style="margin-left: 250px" type="submit" class="btn btn-primary" value="Submit">
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+				
+				<div id="vis2" class="tab-pane fade">
+					<div class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top: 20px">
+						<div  class="panel-heading" style="text-align:center;font-weight: bold">Change Password<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+						<div id="fill">
+							<form  id="supporter1"  style="margin: auto;width: 100%">
+								<div class="form-group" style=" padding: 10px; margin: auto; width: 100%;">
+									
+									<input type ="text" class = "form-control" id="mail1" name = "login_email" placeholder = "Login Email id" required style=" margin-bottom: 40px;">
+									<input id="newpassword" type="password" class="form-control" name = "new_password" required data–typetoggle='#checkbox' placeholder="New password" style=" margin-bottom: 40px;">
+									<input id="confirmnewpassword" type="password" class="form-control" name = "confirm_newpassword" required data–typetoggle='#checkbox' placeholder="Confirm new password" style=" margin-bottom: 40px;">
+
+									
+									<input type="checkbox"   onchange="tick(this)" align="center"/><span>&nbsp;Show Password</span> 
+									<script>
+										function tick(el) {
+											$('#newpassword,#confirmnewpassword').attr('type',el.checked ? 'text' : 'password');
+											}
+									</script>
+		
+		
+									 <!-- <div class = "col-sm-offset-3 col-sm-8"><br></div> --> 
+									<input style="margin-left: 350px" type="submit" class="btn btn-primary" value="Submit" align="center">
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+				
+				<div id="vis3" class="tab-pane fade">
+					<div  class="panel-group" style=" position: relative;margin: auto;width: 100%;">
+						<div  name="inven4" class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;margin-top:20px ">
+							<input type="text" value="0" class="hidden" id="pi">
+							<div  class="panel-heading" style="text-align:center;font-weight: bold">Contact<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+							<div name="vi" class="panel-body" id ='inven3' style="padding: 0px"></div>
+							<form id="inventory3" style="margin:50px;width:100%;" >
+								<div  class="panel-group" style="text-align:left; margin:50px;position: relative">
+									<P>	Contact OLLO support, <br /> <br />
+										Email - ollosupport@chipmonk.in<br />
+										Contact - +91-80-4169-3018<br />
+										Address -<br />
+										Chipmonk Tech. Pvt. Ltd.<br />
+										26/C, IIIT-B Innovation Centre,<br />
+										International Institute of Information Technology, IIIT-Bangalore,<br />
+										Electronic City, Phase - 1,<br />
+										Bangalore, Pin - 560-100<br />
+										India<br />
+									</P>
+								</div >
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+            <!-- /. ROW  -->
+</div>
+    <div id="footer-sec" >
+    </div>	
+             <!-- Main DIV-->
+
+</div>
+    <!-- /. FOOTER  -->
+    <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
+    <!-- JQUERY SCRIPTS -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="assets/js/bootstrap.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="assets/js/jquery.metisMenu.js"></script>
+       <!-- CUSTOM SCRIPTS -->
+    <script src="assets/js/custom.js"></script>
+
+</body>
+</html>

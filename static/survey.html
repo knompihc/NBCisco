@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Places Searchbox</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 100%;
+        }
+        .controls {
+            margin-top: 10px;
+            border: 1px solid transparent;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            height: 32px;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        #pac-input {
+            background-color: #fff;
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+            margin-left: 12px;
+            padding: 0 11px 0 13px;
+            text-overflow: ellipsis;
+            width: 300px;
+        }
+
+        #pac-input:focus {
+            border-color: #4d90fe;
+        }
+
+        .pac-container {
+            font-family: Roboto;
+        }
+
+        #type-selector {
+            color: #fff;
+            background-color: #4d90fe;
+            padding: 5px 11px 0px 11px;
+        }
+
+        #type-selector label {
+            font-family: Roboto;
+            font-size: 13px;
+            font-weight: 300;
+        }
+        #target {
+            width: 345px;
+        }
+    </style>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+<input id="pac-input" class="controls" type="text" placeholder="Search Box">
+<div id="map"></div>
+<button id="download" style="position: absolute; z-index: 1;top: 0;right: 0; font-size: larger">Download</button>
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Information</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="usr">Surveyor Name:</label>
+                        <input type="text" class="form-control" id="usr">
+                    </div>
+                    <div class="form-group">
+                        <label for="usr">Existing Pole Number:</label>
+                        <input type="text" class="form-control" id="pno">
+                    </div>
+                    <div class="form-group">
+                        <label for="mun">Municipality:</label>
+                        <input type="text" class="form-control" id="mun">
+                    </div>
+                    <div class="form-group">
+                        <label for="ward">WARD:</label>
+                        <input type="text" class="form-control" id="ward">
+                    </div>
+                    <div class="form-group">
+                        <label for="loc">Locality/Colony:</label>
+                        <input type="text" class="form-control" id="loc">
+                    </div>
+                    <div class="form-group">
+                        <label for="rw">Road Width  (in Meters):</label>
+                        <input type="text" class="form-control" id="rw">
+                    </div>
+                    <div class="form-group">
+                        <label for="pso">Pole Set Off (in Meters):</label>
+                        <input type="text" class="form-control" id="pso">
+                    </div>
+                    <div class="form-group">
+                        <label for="pla">Pole Layout:</label>
+                        <select class="form-control" id="pla">
+                            <option>Median</option>
+                            <option>Single Side</option>
+                            <option>Opposite</option>
+                            <option>Staggered</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="height">Height (Meters):</label>
+                        <input type="text" class="form-control" id="height">
+                    </div>
+                    <div class="form-group">
+                        <label for="pty">Pole Type:</label>
+                        <select class="form-control" id="pty">
+                            <option>Pole</option>
+                            <option>Pole with Lamp</option>
+                            <option>Pole with Feeder</option>
+                            <option>Pole with Lamp + Feeder</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="opw">Old Pole Wattage:</label>
+                        <select class="form-control" id="opw">
+                            <option>36W</option>
+                            <option>FTL 40W</option>
+                            <option>60W ICL</option>
+                            <option>15W ICL</option>
+                            <option>70W HPSV</option>
+                            <option>100W</option>
+                            <option>150W HPSV</option>
+                            <option>250W HPSV</option>
+                            <option>400W HPSV</option>
+                            <option>Blank Pole</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lf">Lamp Fixtures:</label>
+                        <select class="form-control" id="lf">
+                            <option>Good</option>
+                            <option>Replacement Required</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="earth">Earthing:</label>
+                        <select class="form-control" id="earth">
+                            <option>Nil</option>
+                            <option>Earthed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phase">Phase:</label>
+                        <select class="form-control" id="phase">
+                            <option>Yes</option>
+                            <option>No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="func">Functioning:</label>
+                        <select class="form-control" id="func">
+                            <option>Yes</option>
+                            <option>No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lul">Lux Level (90 Deg) - Lumen:</label>
+                        <input type="text" class="form-control" id="lul">
+                    </div>
+                    <div class="form-group">
+                        <label for="lat">Latitude:</label>
+                        <input type="text" class="form-control" id="lat">
+                    </div>
+                    <div class="form-group">
+                        <label for="long">Logitude:</label>
+                        <input type="text" class="form-control" id="long">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id ="save" class="btn btn-default" data-dismiss="modal">Save</button>
+                <button type="button" id ="remove" class="btn btn-default" data-dismiss="modal">Remove</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script>
+    // This example adds a search box to a map, using the Google Place Autocomplete
+    // feature. People can enter geographical searches. The search box will return a
+    // pick list containing a mix of places and predicted search terms.
+
+    // This example requires the Places library. Include the libraries=places
+    // parameter when you first load the API. For example:
+    // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+    var selectedMarker;
+    var map;
+    var Usr=[],Pno=[],Mun=[],Ward=[],Loc=[],Rw=[],Pso=[],Pla=[],Height=[],Pty=[],Opw=[],Lf=[],Earth=[],Phase=[],Fun=[],Lul=[],Lat=[],Lng=[];
+    function initAutocomplete() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 11.2588, lng: 75.7804},
+            zoom: 13,
+            mapTypeId: 'roadmap'
+        });
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+            searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+            var places = searchBox.getPlaces();
+
+            if (places.length == 0) {
+                return;
+            }
+
+            // Clear out the old markers.
+            markers.forEach(function(marker) {
+                marker.setMap(null);
+            });
+            markers = [];
+
+            // For each place, get the icon, name and location.
+            var bounds = new google.maps.LatLngBounds();
+            places.forEach(function(place) {
+                if (!place.geometry) {
+                    console.log("Returned place contains no geometry");
+                    return;
+                }
+                var icon = {
+                    url: place.icon,
+                    size: new google.maps.Size(71, 71),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(17, 34),
+                    scaledSize: new google.maps.Size(25, 25)
+                };
+
+                // Create a marker for each place.
+                markers.push(new google.maps.Marker({
+                    map: map,
+                    icon: icon,
+                    title: place.name,
+                    position: place.geometry.location
+                }));
+
+                if (place.geometry.viewport) {
+                    // Only geocodes have viewport.
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.extend(place.geometry.location);
+                }
+            });
+            map.fitBounds(bounds);
+        });
+        google.maps.event.addListener(map, 'click', function(event) {
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            var marker = new google.maps.Marker({
+                position: event.latLng,
+                map: map,
+                title: 'Pole!',
+                animation: google.maps.Animation.DROP
+            });
+           // marker.addListener('click', openForm(event));
+            google.maps.event.addListener(marker, "click", function (event) {
+                var latitude = event.latLng.lat();
+                var longitude = event.latLng.lng();
+                $('#lat').val(latitude);
+                $('#long').val(longitude);
+                $('#myModal').modal('show');
+                selectedMarker=marker;
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        $.ajax({
+            type: "GET",
+            url: "/getLocation",
+            success: function (data) {
+                var da=JSON.parse(data);
+                for(var i=0;i<da.length;i++)
+                {
+                    var hash=da[i].lat+"#"+da[i].lng
+                   // var Usr,Pno,Mun,Ward,Loc,Rw,Pso,Pla,Height,Pty,Opw,Lf,Earth,Phase,Fun,Lul,Lat,Lng;
+                    Usr[ hash]= da[i].usr;
+                    Pno[ hash]= da[i].pno;
+                    Mun[ hash]= da[i].mun;
+                    Ward[ hash]= da[i].ward;
+                    Loc[ hash]= da[i].loc;
+                    Rw[ hash]= da[i].rw;
+                    Pso[ hash]= da[i].pso;
+                    Pla[ hash]= da[i].pla;
+                    Height[ hash]= da[i].height;
+                    Pty[ hash]= da[i].pty;
+                    Opw[ hash]= da[i].opw;
+                    Lf[ hash]= da[i].lf;
+                    Earth[ hash]= da[i].earth;
+                    Phase[ hash]= da[i].phase;
+                    Fun[ hash]= da[i].fun;
+                    Lul[ hash]= da[i].lul;
+                    Lat[ hash]= da[i].lat;
+                    Lng[ hash]= da[i].lng;
+                    var marker = new google.maps.Marker({
+                        position:new google.maps.LatLng(da[i].lat,da[i].lng) ,
+                        map: map,
+                        title: 'Pole!',
+                        animation: google.maps.Animation.DROP,
+                    });
+                    // marker.addListener('click', openForm(event));
+                    google.maps.event.addListener(marker, "click", function (event) {
+                        var latitude = event.latLng.lat().toFixed(4).replace(/0+$/, "");
+                        var longitude = event.latLng.lng().toFixed(4).replace(/0+$/, "");
+                        $('#lat').val(latitude);
+                        $('#long').val(longitude);
+                        var tmhash=latitude+"#"+longitude;
+                        $("#usr").val(Usr[tmhash]);
+                        $("#pno").val(Pno[tmhash]);
+                        $("#mun").val(Mun[tmhash]);
+                        $("#ward").val(Ward[tmhash]);
+                        $("#loc").val(Loc[tmhash]);
+                        $("#rw").val(Rw[tmhash]);
+                        $("#pso").val(Pso[tmhash]);
+                        $("#pla").val(Pla[tmhash]);
+                        $("#height").val(Height[tmhash]);
+                        $("#pty").val(Pty[tmhash]);
+                        $("#opw").val(Opw[tmhash]);
+                        $("#lf").val(Lf[tmhash]);
+                        $("#earth").val(Earth[tmhash]);
+                        $("#phase").val(Phase[tmhash]);
+                        $("#fun").val(Fun[tmhash]);
+                        $("#lul").val(Lul[tmhash]);
+                        $("#lat").val(Lat[tmhash]);
+                        $("#long").val(Lng[tmhash])
+                        $('#myModal').modal('show');
+                        selectedMarker=marker;
+                    });
+                }
+            }
+        });
+       $("#remove").click(function () {
+           $.ajax({
+               type: "GET",
+               url: "/deleteLocation?lat="+$("#lat").val()+"&lng="+$("#long").val(),
+               success: function (data) {
+                   if(data=="1"){
+                       alert("Removed Successfully!!");
+                   }else{
+                       alert("Something went wrong!!");
+                   }
+               }
+           });
+           selectedMarker.setMap(null);
+       });
+        $("#save").click(function () {
+            var hash=$("#lat").val()+"#"+$("#long").val();
+            $.ajax({
+                type: "GET",
+                url: "/saveLocation?usr="+$("#usr").val()+"&pno="+$("#pno").val()+"&mun="+$("#mun").val()+"&ward="+$("#ward").val()+"&loc="+$("#loc").val()+"&rw="+$("#rw").val()+"&pso="+$("#pso").val()+"&pla="+$("#pla").val()+"&height="+$("#height").val()+"&pty="+$("#pty").val()+"&opw="+$("#opw").val()+"&lf="+$("#lf").val()+"&earth="+$("#earth").val()+"&,phase="+$("#phase").val()+"&fun="+$("#fun").val()+"&lul="+$("#lul").val()+"&lat="+$("#lat").val()+"&lng="+$("#long").val(),
+                success: function (data) {
+                    if(data=="1"){
+                        alert("Saved Successfully!!");
+                        Usr[ hash]=  $("#usr").val();
+                        Pno[ hash]= $("#pno").val();
+                        Mun[ hash]= $("#mun").val();
+                        Ward[ hash]= $("#ward").val();
+                        Loc[ hash]= $("#loc").val();
+                        Rw[ hash]= $("#rw").val();
+                        Pso[ hash]= $("#pso").val();
+                        Height[ hash]= $("#height").val();
+                        Pty[ hash]= $("#pty").val();
+                        Opw[ hash]= $("#opw").val();
+                        Lf[ hash]= $("#lf").val();
+                        Earth[ hash]= $("#earth").val();
+                        Phase[ hash]= $("#phase").val();
+                        Fun[ hash]= $("#fun").val();
+                        Lul[ hash]= $("#lul").val();
+                        Lat[ hash]= $("#lat").val();
+                        Lng[ hash]= $("#lng").val();
+                    }else{
+                        alert("Something went wrong!!");
+                    }
+                }
+            });
+        });
+        $("#download").click(function () {
+           window.open('/downloadLocation');
+        });
+    });
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD83CfRb8ZWiK8ZNvrtCUsPP4mmerA7A14&libraries=places&callback=initAutocomplete"
+        async defer></script></body>
+</html>

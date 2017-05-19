@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ATTACH SCHEDULE</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="dist/sweetalert.css">
+    <script src="js/auth.js"></script>
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+       <!--CUSTOM BASIC STYLES-->
+    <link href="assets/css/basic.css" rel="stylesheet" />
+    <!--CUSTOM MAIN STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+	<script src="../havelsJscript/schedule.js"></script>
+	<link href="../havelsJscript/jquery.datetimepicker.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="./jquery.datetimepicker.css"/>
+	<script src="js/call.js"></script>
+    <style>
+        .modal {
+            display:    none;
+            position:   fixed;
+            z-index:    10000000000;
+            top:        0;
+            left:       0;
+            height:     100%;
+            width:      100%;
+            background: rgba( 255, 255, 255, .7 )
+            url('images/39.GIF')
+            50% 50%
+            no-repeat;
+        }
+        body.loading {
+            overflow: hidden;
+        }
+
+        /* Anytime the body has the loading class, our
+           modal element will be visible */
+        body.loading .modal {
+            display: block;
+        }
+        .vic{
+            height: 400px;
+            overflow: auto;
+            z-index: 99999;
+            width: 100%;
+            display: none;
+        }
+        .vig{
+            height: 400px;
+            overflow: auto;
+            z-index: 99999;
+            width: 100%;
+            display: none;
+        }
+        .viz{
+            height: 400px;
+            overflow: auto;
+            z-index: 99999;
+            width: 100%;
+            display: none;
+        }
+        .vigr{
+            height: 400px;
+            overflow: auto;
+            z-index: 99999;
+            width: 100%;
+            display: none;
+        }
+        .btn-arrow-right,
+        .btn-arrow-left {
+            position: relative;
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+        .btn-arrow-right {
+            padding-left: 36px;
+        }
+        .btn-arrow-left {
+            padding-right: 36px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after,
+        .btn-arrow-left:before,
+        .btn-arrow-left:after { /* make two squares (before and after), looking similar to the button */
+            content:"";
+            position: absolute;
+            top: 5px; /* move it down because of rounded corners */
+            width: 22px; /* same as height */
+            height: 22px; /* button_outer_height / sqrt(2) */
+            background: inherit; /* use parent background */
+            border: inherit; /* use parent border */
+            border-left-color: transparent; /* hide left border */
+            border-bottom-color: transparent; /* hide bottom border */
+            border-radius: 0px 4px 0px 0px; /* round arrow corner, the shorthand property doesn't accept "inherit" so it is set to 4px */
+            -webkit-border-radius: 0px 4px 0px 0px;
+            -moz-border-radius: 0px 4px 0px 0px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after {
+            transform: rotate(45deg); /* rotate right arrow squares 45 deg to point right */
+            -webkit-transform: rotate(45deg);
+            -moz-transform: rotate(45deg);
+            -o-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+        }
+        .btn-arrow-left:before,
+        .btn-arrow-left:after {
+            transform: rotate(225deg); /* rotate left arrow squares 225 deg to point left */
+            -webkit-transform: rotate(225deg);
+            -moz-transform: rotate(225deg);
+            -o-transform: rotate(225deg);
+            -ms-transform: rotate(225deg);
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:before { /* align the "before" square to the left */
+            left: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:after { /* align the "after" square to the right */
+            right: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:before { /* bring arrow pointers to front */
+            z-index: 1;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:after { /* hide arrow tails background */
+            background-color: white;
+        }
+        .but {
+            width: 70px;
+            height: 70px;
+            font-size: 12px;
+            line-height: 1.33;
+            border-radius: 50px;
+            padding: 0;
+            padding-top: 27px;
+            position: fixed;
+            bottom: 0;
+            right: 50px;
+        }
+        .btn-info {
+            color: #fff;
+            background-color: #428bca;
+            border-color: #428bca;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="wrapper" class="hidden">
+        <nav class="navbar navbar-default navbar-cls-top overlay_header" role="navigation" style="margin-bottom: 0;text-align: center;background-color: #E71A3B;">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="index.html">
+                    <img src="assets/img/logo.jpg" style="height:75px;width:150px">
+				</a>
+            </div>
+			</p>
+			<span style="vertical-align: middle;font-size:200%;color:white"><b>Havells Street Light Management System</b></span>
+
+            <div class="header-right">
+
+                <!-- <a href="message-task.html" class="btn btn-info" title="New Message"><b>30 </b><i class="fa fa-envelope-o fa-2x"></i></a>
+                <a href="message-task.html" class="btn btn-primary" title="New Task"><b>40 </b><i class="fa fa-bars fa-2x"></i></a> -->
+                <table style="font-size: 10px">
+                    <tr>
+                        <td>Welcome &nbsp;<a href="#" style="color: white" id="uid"></a></td>
+                        <td rowspan="2"><span style="float: right;"> <a href="#" id="signout" class="btn btn-danger" title="Logout"><i class="fa fa-sign-out fa-2x"></i></a></span></td>
+                    </tr>
+                    <tr>
+                        <td>Contact Us: +91-80-28390897<span style="font-size: 13px">/</span>8&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
+        </nav>
+        <!-- /. NAV TOP  -->
+		<div class="overlay">
+        <nav class="navbar-default navbar-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav" id="main-menu">
+                    <!-- <li>
+                        <div class="user-img-div">
+                            <img src="assets/img/user.png" class="img-thumbnail" />
+
+                            <div class="inner-text">
+                                Jhon Deo Alex
+                            <br />
+                                <small>Last Login : 2 Weeks Ago </small>
+                            </div>
+                        </div>
+
+                    </li>
+ -->
+
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard "></i>MAIN MENU</a>
+                    </li>
+                    <li>
+                        <a href="map-view.html"><i class="fa fa-globe "></i>MAP VIEW </a>
+                    </li>
+					<li>
+                        <a  href="scheduled.html"><i class="fa fa-calendar "></i>MANAGE SCHEDULES </a>
+                    </li>
+					<li>
+                        <a class="active-menu" href="configure.html"><i class="fa fa-paperclip "></i>ATTACH SCHEDULE </a>
+                    </li>
+					<li>
+                        <a href="inventory.html"><i class="fa fa-gavel "></i>SPARE INVENTORY</a>
+                    </li>
+					<li>
+                        <a href="report.html"><i class="fa fa-bar-chart "></i>REPORTS AND ALERTS </a>
+                    </li>
+					<li>
+                        <a  href="energystore.html"><i class="fa fa-bolt"></i>ENERGY METER CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a  href="graph.html"><i class="fa fa-line-chart"></i></i>ENERGY METER REPORTS </a>
+                    </li>
+                    <li>
+                        <a href="zone.html"><i class="fa fa-wrench"></i>ZONE CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a href="group.html"><i class="fa fa-group"></i>GROUP CONFIGURATION </a>
+                    </li>
+                    <li>
+                        <a href="support.html"><i class="fa fa-phone-square"></i>SUPPORT </a>
+                    </li>
+                    <li id="cfg" class="hidden">
+                        <a href="admintool.html"><i class="fa fa-user"></i>ADMIN TOOL </a>
+                    </li>
+                    <li>
+                        <a href="analytics.html"><i class="fa fa-pie-chart"></i>ANALYTICS </a>
+                    </li>
+                    <li id="cfgota" class="hidden">
+                        <a  href="ota.html"><i class="fa fa-cloud-upload"></i>OTA </a>
+                    </li>
+                    <li style="height: 50px">
+                    </li>
+                </ul>
+            </div>
+
+        </nav>
+		</div>
+        <!-- /. NAV SIDE  -->
+        <div id="page-wrapper">
+            <div id="page-inner" >
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h1 class="page-head-line">ATTACH SCHEDULE <span style="float: right;height: 12px"><iframe src="http://free.timeanddate.com/clock/i4ztv3ts/n438/fs10/tct/pct/ahr/fti/tt0/th1/ta1" frameborder="0" width="235" height="13" allowTransparency="true"></iframe></span>
+                        </h1>
+                        <!-- <h1 class="page-subhead-line">This is dummy text , you can replace it with your original text. </h1> -->
+
+                    </div>
+                </div>
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#ads">SCU</a></li>
+                    <li><a data-toggle="tab" href="#vis">SGU</a></li>
+                    <li><a data-toggle="tab" href="#zo">ZONE</a></li>
+                    <li><a data-toggle="tab" href="#gr">GROUP</a></li>
+                </ul>
+                <!-- /. ROW  -->
+                <div class="modal"></div>
+                <input type="text" value="0" class="hidden" id="scpa">
+                <input type="text" value="0" class="hidden" id="sgpa">
+                <input type="text" value="0" class="hidden" id="zpa">
+                <input type="text" value="0" class="hidden" id="grpa">
+                <div class="row marow" style="margin:0 auto;width:85%">
+                   <!-- <a  id="shg" class="btn btn-info but">SGU</a>
+                    <a  id="shc" class="btn btn-info but hidden">SCU</a>-->
+                    <div style=" margin:0 auto; text-align: center">
+						<div id="suc" class="alert alert-success hidden" style="text-align:center;">
+							<a href="#" class="close"  aria-label="close">&times;</a>
+							<span id="sucmsg"><strong>Saved Successfully!</strong></span>
+						</div>
+						<div id="dan" class="alert alert-danger hidden" style="text-align:center;">
+							<a href="#" class="close"  aria-label="close">&times;</a>
+							 <span id="failmsg"><strong>Some Problem In Saving!!</strong></span>
+						</div>
+                        <div class="tab-content">
+                            <div id="ads" class="tab-pane fade in active">
+						<div class="panel-group" style=" position: relative">
+								<div name="show_scu" class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;padding-bottom: 10px;margin-bottom: 20px">
+									<div  class="panel-heading" style="text-align:center;font-weight: bold">SCU Schedules<span id="help" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+									<div class="panel-body" id ='scucontent' style="padding: 0px"></div>
+                                    <div id="scn" style="float: right;;margin-right: 20px" class="btn btn-primary btn-arrow-right">Next</div>
+                                    <div id="scp" style="float: left;;margin-left: 20px" class="btn btn-primary btn-arrow-left">Prev</div>
+								</div>
+						</div></div>
+                            <div id="vis" class="tab-pane fade">
+                        <div class="panel-group" style=" position: relative">
+                            <div name="show_sgu" class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;padding-bottom: 10px;">
+                                <div  class="panel-heading" style="text-align:center;font-weight: bold">SGU Schedules<span id="help1" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+                                <div class="panel-body" id ='sgucontent' style="padding: 0px"></div>
+                                <div id="sgn" style="float: right ;margin-right: 20px" class="btn btn-primary btn-arrow-right">Next</div>
+                                <div id="sgp" style="float: left ;margin-left: 20px" class="btn btn-primary btn-arrow-left">Prev</div>
+                            </div>
+                        </div>
+						</div>
+                            <div id="zo" class="tab-pane fade">
+                                <div class="panel-group" style=" position: relative">
+                                    <div name="show_sgu" class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;padding-bottom: 10px;">
+                                        <div  class="panel-heading" style="text-align:center;font-weight: bold">ZONE Schedules<span id="help2" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+                                        <div class="panel-body" id ='zonecontent' style="padding: 0px"></div>
+                                        <div id="zn" style="float: right ;margin-right: 20px" class="btn btn-primary btn-arrow-right">Next</div>
+                                        <div id="zp" style="float: left ;margin-left: 20px" class="btn btn-primary btn-arrow-left">Prev</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="gr" class="tab-pane fade">
+                                <div class="panel-group" style=" position: relative">
+                                    <div name="show_sgu" class="panel panel-primary col-sm-10" style="padding: 0; margin: 0;padding-bottom: 10px;">
+                                        <div  class="panel-heading" style="text-align:center;font-weight: bold">Group Schedules<span id="help3" style=" float: right;"><i class="fa fa-question-circle fa-2x"></i></span></div>
+                                        <div class="panel-body" id ='grcontent' style="padding: 0px"></div>
+                                        <div id="grn" style="float: right ;margin-right: 20px" class="btn btn-primary btn-arrow-right">Next</div>
+                                        <div id="grp" style="float: left ;margin-left: 20px" class="btn btn-primary btn-arrow-left">Prev</div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                </div></div>
+                <!-- /. ROW  -->
+
+                <!-- -->
+
+    <div id="footer-sec">
+        <!-- &copy; 2014 YourCompany | Design By : <a href="http://www.binarytheme.com/" target="_blank">BinaryTheme.com</a> -->
+    </div>
+    <!-- /. FOOTER  -->
+    <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
+    <!-- JQUERY SCRIPTS -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="assets/js/bootstrap.js"></script>
+    <!-- METISMENU SCRIPTS -->
+    <script src="assets/js/jquery.metisMenu.js"></script>
+       <!-- CUSTOM SCRIPTS -->
+    <script src="assets/js/custom.js"></script>
+
+</div>
+</div>
+        </div>
+</body>
+</html>
