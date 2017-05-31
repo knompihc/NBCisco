@@ -486,7 +486,7 @@ func (DbUtilsStructPtr *DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
 		if !useRemoteDB {
 
 			//dbinfo = "--host=localhost --user=root --database=test --password=admin123"
-			dbinfo = "root:pass@tcp(localhost:3306)/HavellsCCMSDatabase"
+			dbinfo = "root:pass@tcp(localhost:3306)/HavellsCCMSTest"
 
 		} else {
 			//db in oragon
