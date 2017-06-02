@@ -86,6 +86,7 @@ type NBAllLampControlStruct struct {
 type NBResponseStruct struct {
 	Response_status string `json:"response_status"`
 	Data            NBData `json:"data"`
+	End             string `json:"end"`
 }
 
 //NB Street Lamp Controll
@@ -114,8 +115,45 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	l_token := NBLampStr.Token
 	l_object := NBLampStr.Object
+	//not sure 100% about object validation.
+	if l_object == "" {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Object"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
 	l_opr := NBLampStr.Opr
+	if l_opr == "" || l_opr != "set_street_lamp_power_status" {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Operation"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
 	l_system := NBLampStr.Fdn.System
+	if !ValidateSystem(l_system) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid System"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
 	//l_data := NBLampStr.Data
@@ -134,6 +172,19 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	if !IsSGUInDb(l_sgu) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Gateway Not Found"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+
+	}
 	if !validateSCU(l_scu) {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Invalid SCU"
@@ -146,9 +197,9 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if l_system == "" {
+	if !IsSCUInDb(l_scu) {
 		ans.Response_status = "fail"
-		ans.Data.Message = "System Not Specified"
+		ans.Data.Message = "Street Lamp Not Found"
 		a, err := json.Marshal(ans)
 		if err != nil {
 			logger.Println("Error in json.Marshal")
@@ -157,32 +208,8 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-	}
-	if l_object == "" {
-		ans.Response_status = "fail"
-		ans.Data.Message = "Object Not Specified"
-		a, err := json.Marshal(ans)
-		if err != nil {
-			logger.Println("Error in json.Marshal")
-			logger.Println(err)
-		} else {
-			w.Write(a)
-		}
-		return
-	}
-	if l_opr == "" {
-		ans.Response_status = "fail"
-		ans.Data.Message = "Operation Not Specified"
-		a, err := json.Marshal(ans)
-		if err != nil {
-			logger.Println("Error in json.Marshal")
-			logger.Println(err)
-		} else {
-			w.Write(a)
-		}
-		return
-	}
 
+	}
 	if l_brightness == "" {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Brightness Not Specified"
@@ -610,10 +637,36 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 	l_token := NBLampStr.Token
 	l_object := NBLampStr.Object
 	logger.Println("l_object", l_object)
-	l_opr := NBLampStr.Opr
+	/*l_opr := NBLampStr.Opr
 	logger.Println("l_opr", l_opr)
 	l_system := NBLampStr.Fdn.System
-	logger.Println("l_system", l_system)
+	logger.Println("l_system", l_system)*/
+	l_opr := NBLampStr.Opr
+	if l_opr == "" || l_opr != "discovery" {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Operation"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
+	l_system := NBLampStr.Fdn.System
+	if !ValidateSystem(l_system) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid System"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
 	logger.Println("l_brightness", l_brightness)
@@ -733,6 +786,7 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 		//		ans.Data.Token = tokenString
 		//		ans.Data.Email = username
 		ans.Data.Discovery_map = NBsys
+		ans.End = "^^End of Discovery^^"
 		a, err := json.Marshal(ans)
 		if err != nil {
 			logger.Println("Error in json.Marshal")
@@ -792,17 +846,12 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	l_token := NBLampStr.Token
 	l_object := NBLampStr.Object
+	/*l_opr := NBLampStr.Opr
+	l_system := NBLampStr.Fdn.System*/
 	l_opr := NBLampStr.Opr
-	l_system := NBLampStr.Fdn.System
-	//l_fdn := NBLampStr.Fdn
-	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data
-	l_sgu := NBLampStr.Fdn.Gateway
-	l_scu := NBLampStr.Fdn.Street_lamp
-	l_event := NBLampStr.Data.Brightness
-	if !validateSGU(l_sgu) {
+	if l_opr == "" || l_opr != "set_gateway_power_status" {
 		ans.Response_status = "fail"
-		ans.Data.Message = "Invalid SGU"
+		ans.Data.Message = "Invalid Operation"
 		a, err := json.Marshal(ans)
 		if err != nil {
 			logger.Println("Error in json.Marshal")
@@ -812,7 +861,51 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if !validateSCU(l_scu) {
+	l_system := NBLampStr.Fdn.System
+	if !ValidateSystem(l_system) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid System"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
+	//l_fdn := NBLampStr.Fdn
+	l_brightness := NBLampStr.Data.Brightness
+	//l_data := NBLampStr.Data
+	l_sgu := NBLampStr.Fdn.Gateway
+	l_scu := NBLampStr.Fdn.Street_lamp
+	l_event := NBLampStr.Data.Brightness
+	if !validateSGU(l_sgu) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Gateway"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
+	if !IsSGUInDb(l_sgu) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Gateway Not Found"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+
+	}
+	/*	if !validateSCU(l_scu) {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Invalid SCU"
 		a, err := json.Marshal(ans)
@@ -823,19 +916,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-	}
-	if l_system == "" {
-		ans.Response_status = "fail"
-		ans.Data.Message = "System Not Specified"
-		a, err := json.Marshal(ans)
-		if err != nil {
-			logger.Println("Error in json.Marshal")
-			logger.Println(err)
-		} else {
-			w.Write(a)
-		}
-		return
-	}
+	}*/
 	if l_object == "" {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Object Not Specified"
@@ -848,7 +929,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if l_opr == "" {
+	if l_opr == "" || l_opr != "set_gateway_power_status" {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Operation Not Specified"
 		a, err := json.Marshal(ans)
@@ -1059,8 +1140,34 @@ func GroupStreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	l_token := NBLampStr.Token
 	l_object := NBLampStr.Object
+	/*l_opr := NBLampStr.Opr
+	l_system := NBLampStr.Fdn.System*/
 	l_opr := NBLampStr.Opr
+	if l_opr == "" || l_opr != "set_group_power_status" {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Operation"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
 	l_system := NBLampStr.Fdn.System
+	if !ValidateSystem(l_system) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid System"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
 	//l_data := NBLampStr.Data
@@ -1104,9 +1211,9 @@ func GroupStreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if l_system == "" {
+	if !IsGroupInDB(l_group_s) {
 		ans.Response_status = "fail"
-		ans.Data.Message = "System Not Specified"
+		ans.Data.Message = "Group Not Found"
 		a, err := json.Marshal(ans)
 		if err != nil {
 			logger.Println("Error in json.Marshal")
@@ -1128,19 +1235,6 @@ func GroupStreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if l_opr == "" {
-		ans.Response_status = "fail"
-		ans.Data.Message = "Operation Not Specified"
-		a, err := json.Marshal(ans)
-		if err != nil {
-			logger.Println("Error in json.Marshal")
-			logger.Println(err)
-		} else {
-			w.Write(a)
-		}
-		return
-	}
-
 	if l_brightness == "" {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Brightness Not Specified"
@@ -1353,13 +1447,27 @@ func CraeteSchedule(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("l_token", l_token)
 	l_object := NBLampStr.Object
 	fmt.Println("l_object", l_object)
-	l_opr := NBLampStr.Opr
+	/*l_opr := NBLampStr.Opr
 	fmt.Println("l_opr", l_opr)
 	l_system := NBLampStr.Fdn.System
-	fmt.Println("l_system", l_system)
+	fmt.Println("l_system", l_system)*/
+	l_opr := NBLampStr.Opr
+	if l_opr == "" || l_opr != "set_street_lamp_power_status" {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Operation"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
+	l_system := NBLampStr.Fdn.System
 	if l_system == "" {
 		ans.Response_status = "fail"
-		ans.Data.Message = "System Not Specified"
+		ans.Data.Message = "Invalid System"
 		a, err := json.Marshal(ans)
 		if err != nil {
 			logger.Println("Error in json.Marshal")
@@ -1372,18 +1480,6 @@ func CraeteSchedule(w http.ResponseWriter, r *http.Request) {
 	if l_object == "" {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Object Not Specified"
-		a, err := json.Marshal(ans)
-		if err != nil {
-			logger.Println("Error in json.Marshal")
-			logger.Println(err)
-		} else {
-			w.Write(a)
-		}
-		return
-	}
-	if l_opr == "" {
-		ans.Response_status = "fail"
-		ans.Data.Message = "Operation Not Specified"
 		a, err := json.Marshal(ans)
 		if err != nil {
 			logger.Println("Error in json.Marshal")
@@ -1582,6 +1678,7 @@ func CraeteSchedule(w http.ResponseWriter, r *http.Request) {
 // New Login from Inside Data Parameter for North Bound Api.
 func NBlogin(w http.ResponseWriter, r *http.Request) {
 	logger.Println("NBlogin()")
+	ans := NBResponseStruct{}
 	tokenMap = make(map[string]int)
 	r.ParseForm()
 	var NBLampStr NBAllLampControlStruct
@@ -1593,15 +1690,45 @@ func NBlogin(w http.ResponseWriter, r *http.Request) {
 			logger.Println(err)
 		}
 	} else {
+		NBLampStr.Opr = r.FormValue("third_party_login")
+		NBLampStr.Fdn.System = r.FormValue("fdn.system")
 		NBLampStr.Data.Username = r.FormValue("data.username")
 		NBLampStr.Data.Password = r.FormValue("data.password")
 	}
-
+	opr_l := NBLampStr.Opr
+	if opr_l == "" || opr_l != "third_party_login" {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Operation"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		logger.Println("response status", ans.Response_status)
+		return
+	}
+	system_l := NBLampStr.Fdn.System
+	//System number Yet to be Fixed
+	if !ValidateSystem(system_l) {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid System"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		logger.Println("response status", ans.Response_status)
+		return
+	}
 	username := NBLampStr.Data.Username
 	fmt.Println("username:", username)
 	password := NBLampStr.Data.Password
 	fmt.Println("password:", password)
-	ans := NBResponseStruct{}
+
 	if !validateEmail(username) {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Invalid Email Id"
@@ -1706,4 +1833,89 @@ func NBlogin(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Println("response status", ans.Response_status)
 	return
+}
+func IsSGUInDb(p_sgu string) bool {
+	var l_resp bool
+	if dbController.DbConnected {
+		fmt.Println("p_sgu", p_sgu)
+		statement := "SELECT sgu_id FROM sgu where sgu_id='" + p_sgu + "'"
+		logger.Println(statement)
+		rows, err := dbController.Db.Query(statement)
+		defer rows.Close()
+		if err != nil {
+			l_resp = false
+		} else {
+			var l_sgu string
+			for rows.Next() {
+				rows.Scan(&l_sgu)
+				if strings.EqualFold(p_sgu, l_sgu) == true {
+					l_resp = true
+				} else {
+					l_resp = false
+				}
+			}
+
+			rows.Close()
+		}
+	}
+	return l_resp
+}
+func IsSCUInDb(p_scu string) bool {
+	var l_resp bool
+	if dbController.DbConnected {
+		fmt.Println("p_scu", p_scu)
+		statement := "SELECT scu_id FROM scu where scu_id='" + p_scu + "'"
+		logger.Println(statement)
+		rows, err := dbController.Db.Query(statement)
+		defer rows.Close()
+		if err != nil {
+			l_resp = false
+		} else {
+			var l_sgu string
+			for rows.Next() {
+				rows.Scan(&l_sgu)
+				if strings.EqualFold(p_scu, l_sgu) == true {
+					l_resp = true
+				} else {
+					l_resp = false
+				}
+			}
+
+			rows.Close()
+		}
+	}
+	return l_resp
+}
+func ValidateSystem(p_system string) bool {
+	if p_system == "" || p_system != "5" {
+		return false
+	} else {
+		return true
+	}
+}
+func IsGroupInDB(p_group string) bool {
+	var l_resp bool
+	if dbController.DbConnected {
+		fmt.Println("p_group", p_group)
+		statement := "SELECT name FROM groupscu where name='" + p_group + "'"
+		logger.Println(statement)
+		rows, err := dbController.Db.Query(statement)
+		defer rows.Close()
+		if err != nil {
+			l_resp = false
+		} else {
+			var l_group string
+			for rows.Next() {
+				rows.Scan(&l_group)
+				if strings.EqualFold(p_group, l_group) == true {
+					l_resp = true
+				} else {
+					l_resp = false
+				}
+			}
+
+			rows.Close()
+		}
+	}
+	return l_resp
 }
