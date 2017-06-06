@@ -44,7 +44,7 @@ func StartTcpServer(clientFIFO  chan net.Conn,logg *log.Logger) () {
 		} else {
 
 	
-			logger.Println("Server started. Listening for connections")
+			logger.Println("Listening for connections")
 
 	
 	

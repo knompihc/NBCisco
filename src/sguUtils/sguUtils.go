@@ -433,14 +433,22 @@ func (SguUtilsStructPtr *SguUtilsStruct)UpdateDBWithLampStatus() {
 	if (SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount == 0) {
 		return
 	}
-
+	
+	logger.Println("Lam sttus is:",SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount)
 	tempcount := SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount
 	SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount = 0
 
 	DbController.DbSemaphore.Lock()
 	//create a new transaction
 	_Tx, _Err := DbController.Db.Begin()
-
+	
+	defer func(){
+	rec := recover()
+		if rec != nil {
+			logger.Println("Recovered from Tx.Prepare and cause is :", rec)
+		}	
+	}()
+	
 	if _Err != nil {
 		logger.Println("Error opening a new DB transaction for updating lamp status in DB")
 		logger.Println(_Err)
@@ -450,10 +458,11 @@ func (SguUtilsStructPtr *SguUtilsStruct)UpdateDBWithLampStatus() {
 	}
 	DbController.DbSemaphore.Unlock()
 
-
+	
+	
 
 	qStatement := "insert into scu_status (scu_id, status) values(?,?) " +
-		 		"on duplicate key update status=?,timestamp=now()"
+		 		"on duplicate key update status=?,timestamp=Now()"
 	
 	 
 

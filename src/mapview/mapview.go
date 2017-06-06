@@ -270,9 +270,19 @@ func Getall(w http.ResponseWriter, r *http.Request){
 		sta=sta&3
 		logger.Println("STATUS=",sta)
 		status:="GREY"
+		/*currtime := time.Now().Local().Add(-60 * time.Minute)
+                currtime = currtime.In(loc)
+                logger.Println("current time :",currtime)
+                layOut := "2006-01-02 15:04:05"
+                timeStamp, err := time.Parse(layOut, ts)
+                if err != nil {
+                 logger.Println("error while parsing timeStamp:",err)
+                }
+                logger.Println("ts=", timeStamp)*/
 		currtime:=time.Now().Add(-60*time.Minute)
 		logger.Println("ts=",ts)
 		statime,_:=time.ParseInLocation("2006-01-02 15:04:05",ts,loc)
+		//statime := timeStamp.In(loc)		
 		logger.Println("saved time=",statime)
 		if currtime.After(statime){
 			sta=3
