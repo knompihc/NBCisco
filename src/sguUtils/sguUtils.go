@@ -693,9 +693,8 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 
 
 	for {
-
+		SguUtilsStructPtr.SguTcpUtilsStruct.SCUListreceived = true
 		select {
-
 
 		case  <-SguUtilsStructPtr.SguTicker.C:  {
 
@@ -722,7 +721,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 
 
 			}
-
+			if SguUtilsStructPtr.SguTcpUtilsStruct.SGUID != 0 {
 			//check for current sgu status
 			switch SguUtilsStructPtr.sguState  {
 
@@ -914,7 +913,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 
 
 			}
-
+		   }
 		}
 
 		case <-SguUtilsStructPtr.SguClose: 	{

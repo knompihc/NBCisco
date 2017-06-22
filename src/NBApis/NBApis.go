@@ -29,9 +29,9 @@ import (
 	"strconv"
 	"strings"
 	//	"tcpServer"
-	//	"tcpUtils"
+	"tcpUtils"
 	"time"
-
+	"sync"
 	//	"github.com/context"
 	"github.com/jwt-go-master"
 	//	"github.com/scorredoira/email"
@@ -52,6 +52,11 @@ var (
 	per_scu_delay  string
 	scu_scheduling string
 )
+
+var status = struct {
+	sync.RWMutex
+	lbuffer map[string]string
+}{lbuffer: make(map[string]string)}
 
 func InitNBApis(LampConChannel chan sguUtils.SguUtilsLampControllerStruct, dbcon dbUtils.DbUtilsStruct, logg *log.Logger) {
 	logger = logg
@@ -227,7 +232,13 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data
+	//l_data := NBLampStr.Data 
+	var NewStatus string
+	if l_brightness != "0" {
+		NewStatus = "1"
+	}else{
+		NewStatus = "0"
+	}
 	l_sgu := NBLampStr.Fdn.Gateway
 	l_scu := NBLampStr.Fdn.Street_lamp
 	l_event := NBLampStr.Data.Brightness
@@ -389,7 +400,8 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		//LampController.ResponseSend  = make(chan bool)
 		LampController.W = nil
 		LampController.ResponseSend = nil
-		LampControllerChannel <- LampController
+		LampControllerChannel <- LampController 
+		tcpUtils.SetTempStatus(l_scu,NewStatus)
 		logger.Println("Lamp event sent to channel")
 		du, _ := time.ParseDuration(per_scu_delay + "s")
 		time.Sleep(du)
@@ -950,7 +962,14 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data
+	//l_data := NBLampStr.Data 
+	var NewStatus string
+	if l_brightness != "0" {
+		NewStatus = "1"
+	}else{
+		NewStatus = "0"
+	}	
+
 	l_sgu := NBLampStr.Fdn.Gateway
 	l_scu := NBLampStr.Fdn.Street_lamp
 	l_event := NBLampStr.Data.Brightness
@@ -1127,7 +1146,9 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						}
 						return
 					}
-
+					
+					//tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
+					//logger.Println("Status Set")
 					LampController.SCUID, err = strconv.ParseUint(scu_id_db_s, 10, 64)
 					logger.Println("LampController.SCUID", LampController.SCUID)
 					if err != nil {
@@ -1144,7 +1165,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					//GetSet field is set to set mode
-
+					
 					LampController.LampEvent |= 0x100
 					LampController.PacketType = 0x3000
 					LampController.ConfigArray = nil
@@ -1155,10 +1176,10 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 					LampController.W = nil
 					LampController.ResponseSend = nil
 					LampControllerChannel <- LampController
+					tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
 					logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
 
 				}
-
 				ans.Response_status = "success"
 				ans.Data.Message = ""
 				a, err := json.Marshal(ans)
@@ -4082,11 +4103,20 @@ func StreetLampInfo(SGUId string) map[string]StreetLampDetails {
 		if err != nil {
 			return ans
 		}
-		logger.Println("values assigned:", scu)
+		logger.Println("Db status:", st)
 		temp.Location_lat = la
 		temp.Location_lng = ln
 		temp.Location_name = l
-		switch st {
+		tempStatus := tcpUtils.GetTempStatus(scu)
+                if tempStatus == "0"{
+                        temp.Status = "OFF"
+                }else if  tempStatus == "1"{
+                        temp.Status = "ON"
+                }else{
+                        temp.Status = "UNKNOWN"
+                }
+
+		/*switch st {
 
 		case "0":
 			temp.Status = "OFF"
@@ -4096,12 +4126,10 @@ func StreetLampInfo(SGUId string) map[string]StreetLampDetails {
 
 		default:
 			temp.Status = "UNKNOWN"
-		}
-		//temp.Status = st
-		//	logger.Println("temp:", temp)
+		}*/
 		ans[scu] = temp
-		//logger.Println("values for streetLamp", ans[scu])
 	}
+	status.RUnlock()
 	rows.Close()
 	//ans = LampDetails
 	logger.Println("Ans is:", ans)

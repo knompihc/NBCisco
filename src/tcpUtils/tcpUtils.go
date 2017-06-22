@@ -24,7 +24,12 @@ import (
 	"math"
 	"strings"
 	"bytes"
+	"sync"
 )
+var status = struct {
+        sync.RWMutex
+        lbuffer map[string]string
+}{lbuffer: make(map[string]string)}
 	   
 
 const	(
@@ -1131,8 +1136,11 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)   ParseInputPacket() {
 	
         
         //get 8 bytes of SGU id
-        TcpUtilsStructPtr.SGUID = TcpUtilsStructPtr.ReadSixBytesFromInput();
-        
+       // TcpUtilsStructPtr.SGUID = TcpUtilsStructPtr.ReadSixBytesFromInput();
+        SGUID := TcpUtilsStructPtr.ReadSixBytesFromInput()
+	if SGUID != 0 {
+		TcpUtilsStructPtr.SGUID = SGUID
+	}
         logger.Printf("SGU ID  %d \n",TcpUtilsStructPtr.SGUID);        
     	
 		//TimeStampString  := make([]byte,14)
@@ -2341,4 +2349,41 @@ func Crc16(bs []byte) (crc uint16) {
 	}
 
 	return
+}
+
+func SetTempStatus(scu string, NewStatus string){
+
+status.Lock()
+status.lbuffer[scu] = NewStatus
+status.Unlock()
+}
+
+func GetTempStatus(scu string) string{
+
+status.RLock()
+ans := status.lbuffer[scu]
+status.RUnlock()
+return ans
+}
+
+func SyncFromDB () bool {
+
+db := dbController.Db
+	dbController.DbSemaphore.Lock()
+	defer dbController.DbSemaphore.Unlock()
+	rows ,err := db.Query("SELECT scu_id, status from scu_status")
+	if err != nil{
+		logger.Println("error while sync status from DB: ",err)
+		return false
+	}else{
+		defer rows.Close()
+		var scu, state string
+		status.Lock()
+		for rows.Next(){
+			rows.Scan(&scu,&state)
+			status.lbuffer[scu] = state
+		}
+		status.Unlock()
+	}
+	return true
 }

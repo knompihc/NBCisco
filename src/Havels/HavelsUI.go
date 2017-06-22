@@ -31,6 +31,7 @@ import (
 	"strconv"
 	"strings"
 	"tcpServer"
+//	"tcpUtils"
 	"tcpUtils"
 	"time"
 
@@ -746,11 +747,33 @@ func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
 			logger.Println("Invalid SCUID" + arrsc[i] + " specified")
 			return
 		}
-		LampController.LampEvent, err = strconv.Atoi(m["LampEvent"][0])
+		Levent, err := strconv.Atoi(m["LampEvent"][0])
+		logger.Println("Received value of brightness: ",Levent)
+		var NewStatus string
+                if Levent != 0 {
+                        NewStatus = "1"
+                }else{
+                        NewStatus = "0"
+                }
+
 		if err != nil {
 			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
 			return
 		}
+		if Levent > 0 {
+			if Levent <= 2 {
+				Levent = 5
+			}else if Levent >2 && Levent<= 4 {
+				Levent = 6
+			}else if Levent > 4 && Levent<= 6 {
+				Levent = 7
+			}else if Levent > 6 && Levent<=8 {
+				Levent = 8
+			}
+		}
+		logger.Println("Brightness value sent to SGU: ",Levent)
+		LampController.LampEvent = Levent
+		
 		//GetSet field is set to set mode
 		LampController.LampEvent |= 0x100
 		LampController.PacketType = 0x3000
@@ -763,6 +786,8 @@ func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
 		LampController.ResponseSend = nil
 		LampControllerChannel <- LampController
 		logger.Println("Lamp event sent to channel")
+		tcpUtils.SetTempStatus(arrsc[i],NewStatus)		
+//tcpUtils.SetTempStatus(arrsc[i],NewStatus)
 	}
 	//logger.Println(m)
 	//logger.Println(m["SGUID"][0])
@@ -896,14 +921,31 @@ func LampControl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	LampController.LampEvent, err = strconv.Atoi(m["LampEvent"][0])
-
-	//logger.Println("Parsed lampEvent")
-
-	if err != nil {
-		logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
-		return
-	}
+	Levent, err := strconv.Atoi(m["LampEvent"][0])
+	logger.Println("Received value of brightness: ",Levent)
+		if err != nil {
+			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
+			return
+		}
+		var NewStatus string
+                if Levent != 0 {
+                        NewStatus = "1"
+                }else{
+                        NewStatus = "0"
+                }
+		if Levent > 0 {
+			if Levent <= 2 {
+				Levent = 5
+			}else if Levent >2 && Levent<= 4 {
+				Levent = 6
+			}else if Levent > 4 && Levent<= 6 {
+				Levent = 7
+			}else if Levent > 6 && Levent<=8 {
+				Levent = 8
+			}
+		}
+	logger.Println("Brightness value sent to SGU: ",Levent)
+	LampController.LampEvent = Levent
 	//GetSet field is set to set mode
 	LampController.LampEvent |= 0x100
 
@@ -924,7 +966,7 @@ func LampControl(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("LampId = %d, LampVal = %d\n", LampId, LampVal)
 	LampControllerChannel <- LampController
 	logger.Println("Lamp event sent to channel")
-
+	tcpUtils.SetTempStatus(m["SCUID"][0],NewStatus)
 	//wait for response
 	//TBD. Add a timeout here
 	<-LampController.ResponseSend
@@ -964,11 +1006,32 @@ func AllLampControl(w http.ResponseWriter, r *http.Request) {
 			logger.Println("Invalid SCUID" + arrsc[i] + " specified")
 			return
 		}
-		LampController.LampEvent, err = strconv.Atoi(m["LampEvent"][0])
+		
+		Levent, err := strconv.Atoi(m["LampEvent"][0])
+		logger.Println("Received value of brightness: ",Levent)
 		if err != nil {
 			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
 			return
 		}
+		var NewStatus string
+                if Levent != 0 {
+                        NewStatus = "1"
+                }else{
+                        NewStatus = "0"
+                }
+		if Levent > 0 {
+			if Levent <= 2 {
+				Levent = 5
+			}else if Levent >2 && Levent<= 4 {
+				Levent = 6
+			}else if Levent > 4 && Levent<= 6 {
+				Levent = 7
+			}else if Levent > 6 && Levent<=8 {
+				Levent = 8
+			}
+		} 
+		logger.Println("Brightness value sent to SGU: ",Levent)
+		LampController.LampEvent = Levent
 		//GetSet field is set to set mode
 		LampController.LampEvent |= 0x100
 		LampController.PacketType = 0x3000
@@ -981,6 +1044,7 @@ func AllLampControl(w http.ResponseWriter, r *http.Request) {
 		LampController.ResponseSend = nil
 		LampControllerChannel <- LampController
 		logger.Println("Lamp event sent to channel")
+		tcpUtils.SetTempStatus(arrsc[i],NewStatus)
 		du, _ := time.ParseDuration(per_scu_delay + "s")
 		time.Sleep(du)
 	}
@@ -3073,11 +3137,11 @@ func main() {
 	}
 	Sgu_firmware = make(map[int64][]byte)
 	Scu_firmware = make(map[int64][]byte)
-	port := os.Getenv("PORT")
+//	port := os.Getenv("PORT")
 	//logger.Println("new logger")
 
 	logger.Println("Recovering from  error")
-	//port="8000"
+	port :="8080"
 	if port == "" {
 		logger.Println("$PORT must be set")
 	}
@@ -3149,8 +3213,8 @@ func main() {
 	http.HandleFunc("/", my)
 
 	//logger.Println("directory Set")
-	//http.HandleFunc("/login", login)
-	http.HandleFunc("/Havellslogin", login)
+	http.HandleFunc("/SBlogin", login)
+	//http.HandleFunc("/Havellslogin", login)
 	http.HandleFunc("/adminlogin", adminlogin)
 
 	//logger.Println("Login Set")
@@ -3277,14 +3341,25 @@ func main() {
 	http.HandleFunc("/system/delete/group", NBApis.DeleteLamp)
 	//logger.Println("Starting HTTP Server")
 	//downloadSguRepo()
-	err = http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
-
-	//err = http.ListenAndServeTLS(":"+port, "./keys/server.pem", "./keys/server.key", nil)
-
-	if err != nil {
-		logger.Println("Failed to start server")
+	//err = http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
+	state := tcpUtils.SyncFromDB()
+	if !state {
+		logger.Println("error in sync SCU Status from DB")
+	}
+	//err = http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
+go func(){
+	 err1 := http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
+	if err1 != nil {
+		logger.Println("Failed to start http server")
 		logger.Print(err.Error())
 	}
+  }()
+	err2 := http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
+	if err2 != nil {
+                logger.Println("Failed to start https  server")
+                logger.Print(err.Error())
+        }
+
 	close(StartSendSMSThreadDone)
 	close(HandleSguConnectionsDone)
 	close(HandleLampEventsDone)

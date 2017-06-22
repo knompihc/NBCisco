@@ -22,8 +22,8 @@ import (
 
 const	(
 	enableLogs=false
-	//useRemoteDB=true
-useRemoteDB = false
+	useRemoteDB=true
+//useRemoteDB = false
 	)
 	   
 

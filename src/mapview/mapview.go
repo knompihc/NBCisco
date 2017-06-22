@@ -18,8 +18,9 @@ import (
 	"dbUtils"
 	"github.com/sessions"
 	"encoding/json"
-	"time"
+	//"time"
 	"sguUtils"
+	"tcpUtils"
 )
 type Zone struct {
 	Name string `json:"name"`
@@ -139,14 +140,16 @@ func Showmap(w http.ResponseWriter, r *http.Request){
 		}
 		sta:=st & (0x0FF)
 		logger.Println("STATUS before=",sta)
-		sta=sta&3
+		sta=sta&3 
+		tempscu := strconv.FormatUint(scu,10)
+                state := tcpUtils.GetTempStatus(string(tempscu))
 		logger.Println("STATUS=",sta)
 		status:="GREY"
-		if sta==0{
+		if state == "0"{
 			status="RED"
-		}else if sta==1 {
+		}else if state =="1" {
 			status="GREEN"
-		}else if sta==2 {
+		}else {
 			status="BLACK"
 		}
 		lats:=strconv.FormatFloat(lat,'f',-1,64)
@@ -258,7 +261,7 @@ func Getall(w http.ResponseWriter, r *http.Request){
 	mc := make(map[string]scu)
 	cmz := make(map[string]int)
 	cmg := make(map[string]int)
-	loc, _ := time.LoadLocation("UTC")
+	//loc, _ := time.LoadLocation("UTC")
 	//tf,_:=time.ParseInLocation("01/02/2006 3:04 PM",from,loc)
 	for rows.Next(){
 		var zid,zname,sguid,sguname,scuid,scuname,lat,lng,ts string
@@ -270,6 +273,15 @@ func Getall(w http.ResponseWriter, r *http.Request){
 		sta=sta&3
 		logger.Println("STATUS=",sta)
 		status:="GREY"
+		state := tcpUtils.GetTempStatus(scuid)
+				
+				if state=="0"{
+                        status="RED"
+                }else if state=="1" {
+                        status="GREEN"
+                }else{
+                        status="BLACK"
+                }
 		/*currtime := time.Now().Local().Add(-60 * time.Minute)
                 currtime = currtime.In(loc)
                 logger.Println("current time :",currtime)
@@ -279,7 +291,7 @@ func Getall(w http.ResponseWriter, r *http.Request){
                  logger.Println("error while parsing timeStamp:",err)
                 }
                 logger.Println("ts=", timeStamp)*/
-		currtime:=time.Now().Add(-60*time.Minute)
+	/*	currtime:=time.Now().Add(-60*time.Minute)
 		logger.Println("ts=",ts)
 		statime,_:=time.ParseInLocation("2006-01-02 15:04:05",ts,loc)
 		//statime := timeStamp.In(loc)		
@@ -294,7 +306,7 @@ func Getall(w http.ResponseWriter, r *http.Request){
 			status="GREEN"
 		}else if sta==2 {
 			status="BLACK"
-		}
+		}*/
 		if cmz[zid]!=1{
 			tz:=res{}
 			tz.Zid=zid

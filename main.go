@@ -143,7 +143,7 @@ func runServer(port string) {
 	s := string(out[:])
 	if len(s)==0{
 		logger.Println("Build Started!!!")
-		_,eorr:=exec.Command("go","build","Havels").Output()
+		_,eorr:=exec.Command("/usr/local/go/bin/go","build","Havels").Output()
 		if eorr!=nil{
 			logger.Println(eorr)
 		}
