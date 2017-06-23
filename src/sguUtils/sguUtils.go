@@ -898,7 +898,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 
   					SguUtilsSemaphore.Unlock()
 					SguUtilsStructPtr.SendAlertSMS()
-					SguUtilsStructPtr.SGUGetLampStatus()
+				//	SguUtilsStructPtr.SGUGetLampStatus()
 					SguUtilsStructPtr.UpdateDBWithLampStatus()
 				}
 
@@ -1353,6 +1353,10 @@ func	HandleSguConnections(sguChan chan net.Conn,  MasterdbController dbUtils.DbU
 	//loop and wait for new connection
 
 	go func()  {
+                tempSGU := new(SguUtilsStruct)
+                tempSGU.SguClose = make(chan bool)
+                tempSGU.SGUInitMem()
+		tempSGU.SguTcpUtilsStruct.InitializeBufferParams(maxNumScusPerSgu)
 		for {
 
 			select {
@@ -1364,19 +1368,23 @@ func	HandleSguConnections(sguChan chan net.Conn,  MasterdbController dbUtils.DbU
 				if (enableSemaphoreLogs) {
     				logger.Println("Locking6")
 				}
-				SguUtilsSemaphore.Lock()
+			//	SguUtilsSemaphore.Lock()
 				
-				tempSGU := new(SguUtilsStruct)
+			/*	tempSGU := new(SguUtilsStruct)
 				tempSGU.SguClose = make(chan bool)
-				tempSGU.SGUInitMem()
+				tempSGU.SGUInitMem()*/
+                         if tempSGU.SguTcpUtilsStruct.ConnectedToSGU{                    
+                                 tempSGU.SguTcpUtilsStruct.CloseTcpClient()
+                    
+                         }
 
-				tempSGU.SguTcpUtilsStruct.AddTcpClientToSGU(temp,maxNumScusPerSgu)
+				tempSGU.SguTcpUtilsStruct.AddTcpClientToSGU(temp)
 
 				ticker := time.NewTicker(time.Millisecond * sguTickerTimeInMiliSeconds)
 				tempSGU.SguTicker = ticker
 				go tempSGU.HandleSguPackets()
 
-				SguUtilsSemaphore.Unlock()
+			//	SguUtilsSemaphore.Unlock()
 				if (enableSemaphoreLogs) {
 					logger.Println("Unlocked6")
 				}

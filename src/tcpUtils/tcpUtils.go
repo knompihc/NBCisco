@@ -25,6 +25,7 @@ import (
 	"strings"
 	"bytes"
 	"sync"
+	"encoding/hex"
 )
 var status = struct {
         sync.RWMutex
@@ -193,28 +194,28 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)    CloseTcpClient()  {
 
 	TcpUtilsStructPtr.reader = nil
 	TcpUtilsStructPtr.writer = nil
-	TcpUtilsStructPtr.responseLineBuff = nil
+	/*TcpUtilsStructPtr.responseLineBuff = nil
 	TcpUtilsStructPtr.commandLineBuff = nil
 	TcpUtilsStructPtr.SCUIDArray = nil
 	TcpUtilsStructPtr.SCUIDinDBArray = nil
 	TcpUtilsStructPtr.ResponseReceivedArray = nil
 	TcpUtilsStructPtr.LampStatusArray = nil
 	TcpUtilsStructPtr.ConnectedToSGU = false
-
+*/
 
 }
 
 
 
-func (TcpUtilsStructPtr	*TcpUtilsStruct) AddTcpClientToSGU(newTcpClient net.Conn, MAXNumOFSCUS int) {
+func (TcpUtilsStructPtr	*TcpUtilsStruct) AddTcpClientToSGU(newTcpClient net.Conn) {
 
 
 
-	TcpUtilsStructPtr.MAXNumOFSCUS = MAXNumOFSCUS
+	//TcpUtilsStructPtr.MAXNumOFSCUS = MAXNumOFSCUS
 	TcpUtilsStructPtr.tcpClient = newTcpClient
 	TcpUtilsStructPtr.reader = bufio.NewReader(TcpUtilsStructPtr.tcpClient)
 	TcpUtilsStructPtr.writer = bufio.NewWriter(TcpUtilsStructPtr.tcpClient)
-
+	/*
 	TcpUtilsStructPtr.responseLineBuff = make([]byte, MaxInOutBufferLength)
 	TcpUtilsStructPtr.commandLineBuff = make([]byte, MaxInOutBufferLength)
 	TcpUtilsStructPtr.SCUIDArray = make([]uint64, MAXNumOFSCUS)
@@ -236,13 +237,42 @@ func (TcpUtilsStructPtr	*TcpUtilsStruct) AddTcpClientToSGU(newTcpClient net.Conn
 	//firmware
 	TcpUtilsStructPtr.Is_updating=false;
 	TcpUtilsStructPtr.Prev_temp_arr=make([]byte,1028)
-
-
+*/
+	TcpUtilsStructPtr.ConnectedToSGU = true
 	TcpUtilsStructPtr.Is_TCP_Connected=true
 
 }
 
+func (TcpUtilsStructPtr *TcpUtilsStruct) InitializeBufferParams(MAXNumOFSCUS int) {
+	TcpUtilsStructPtr.MAXNumOFSCUS = MAXNumOFSCUS
+	//TcpUtilsStructPtr.tcpClient = newTcpClient
+	//	TcpUtilsStructPtr.reader = bufio.NewReader(TcpUtilsStructPtr.tcpClient)
+	//	TcpUtilsStructPtr.writer = bufio.NewWriter(TcpUtilsStructPtr.tcpClient)
 
+	TcpUtilsStructPtr.responseLineBuff = make([]byte, MaxInOutBufferLength)
+	TcpUtilsStructPtr.commandLineBuff = make([]byte, MaxInOutBufferLength)
+	TcpUtilsStructPtr.SCUIDArray = make([]uint64, MAXNumOFSCUS)
+	TcpUtilsStructPtr.SCUIDinDBArray = make([]uint64, MAXNumOFSCUS)
+	TcpUtilsStructPtr.ResponseReceivedArray = make([]int, MAXNumOFSCUS)
+	TcpUtilsStructPtr.LampStatusArray = make([]uint64, MAXNumOFSCUS)
+
+	TcpUtilsStructPtr.SCUAnalogP1StateArray = make([]int, MAXNumOFSCUS)
+
+	TcpUtilsStructPtr.RetryHash = make(map[string]int)
+	TcpUtilsStructPtr.RetryHashSCU = make(map[string]int64)
+	//TcpUtilsStructPtr.ConnectedToSGU = true
+	TcpUtilsStructPtr.InputPacketcounter = 0
+	TcpUtilsStructPtr.LampStatusCount = 0
+	TcpUtilsStructPtr.SGUID = 0
+	TcpUtilsStructPtr.SCUListreceived = false
+
+	//firmware
+	TcpUtilsStructPtr.Is_updating = false
+	TcpUtilsStructPtr.Prev_temp_arr = make([]byte, 1028)
+
+	//TcpUtilsStructPtr.Is_TCP_Connected = true
+
+}
 
 func  (TcpUtilsStructPtr	*TcpUtilsStruct)  RewindInputBuffer(nBytes int) {
 
@@ -534,12 +564,12 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)    SendSocketData() {
         }
         
        // logger.Printf("Sending %d Bytes\n", TcpUtilsStructPtr.outputBufferDipstick)
-
+	 pktdata := make([]byte,1)
         for ;TcpUtilsStructPtr.outputBufferDipstick>0; {
 
 			tByte := TcpUtilsStructPtr.GetByteFromOutputBuff()
 			//logger.Printf("%x", tByte)
-            
+           		pktdata = append(pktdata, tByte) 
    			err :=  TcpUtilsStructPtr.writer.WriteByte(tByte)
 			if err != nil {
                 logger.Println("Could not  write to socket");
@@ -547,7 +577,9 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)    SendSocketData() {
 				TcpUtilsStructPtr.CloseTcpClient()
 				return
             }
-        }
+       }
+	tpktdata := hex.EncodeToString(pktdata)
+	logger.Println("Debugging packet data being sent: ",tpktdata)
 logger.Println("func SendSocketData")	
 err_flush:=TcpUtilsStructPtr.writer.Flush()
 if err_flush != nil {
@@ -893,7 +925,7 @@ log.Println("getSetByte--:", getSetByte)
 					}else if lampVal==9{
 						tt=0x09
 					}else if lampVal==10{
-						tt=0x09
+						tt=0x0a
 					}
 					TcpUtilsStructPtr.AddByteToOutputBuff((byte)(tt));
 					tval:=0x01
@@ -1221,8 +1253,12 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)   ParseInputPacket() {
 
                 
                 for i:=0;i<TcpUtilsStructPtr.NumOfSCUs;i++ {
-                    TcpUtilsStructPtr.SCUIDArray[i] = TcpUtilsStructPtr.ReadEightBytesFromInput();
-                    //read and dump reserved byte
+                    //TcpUtilsStructPtr.SCUIDArray[i] = TcpUtilsStructPtr.ReadEightBytesFromInput();
+                    scuid := TcpUtilsStructPtr.ReadEightBytesFromInput()
+				if scuid != 0{
+					TcpUtilsStructPtr.SCUIDArray[i] = scuid
+				}
+		    //read and dump reserved byte
                     TcpUtilsStructPtr.ReadOneByteFromInput();
                 }
                 
