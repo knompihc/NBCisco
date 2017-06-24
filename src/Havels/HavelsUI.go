@@ -3120,6 +3120,22 @@ func downloadLocation(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func SyncAll(w http.ResponseWriter, r *http.Request){
+
+logger.Println("SyncAll")
+        state := tcpUtils.SyncFromDB()
+        if !state {
+w.Write([]byte("Sync Error"))
+//      http.Redirect(w, r, "map-view.html", http.StatusFound)
+                return
+        }else{
+w.Write([]byte("Sync Successfull"))
+        //      http.Redirect(w, r, "map-view.html", http.StatusFound)
+        }
+        return
+}
+
+
 func main() {
 	rollbar.Token = rollbarToken
 	rollbar.Environment = "Testing"
@@ -3211,7 +3227,10 @@ func main() {
 
 	chttp.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/", my)
-
+	state1 := tcpUtils.SyncFromDB()
+	if state1{
+		logger.Println("SCUs status synced from DB")
+	}
 	//logger.Println("directory Set")
 	http.HandleFunc("/SBlogin", login)
 	//http.HandleFunc("/Havellslogin", login)
@@ -3301,7 +3320,7 @@ func main() {
 	http.HandleFunc("/deleteLocation", deleteLocation)
 	http.HandleFunc("/getLocation", getLocation)
 	http.HandleFunc("/downloadLocation", downloadLocation)
-
+	http.HandleFunc("/syncall", SyncAll)
 	http.HandleFunc("/configure/addgroup", configure.Addgroup)
 	http.HandleFunc("/configure/groupconfigure", configure.Groupconfigure)
 	http.HandleFunc("/configure/groupscuview", configure.Groupscuview)

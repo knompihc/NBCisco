@@ -735,26 +735,14 @@ function Infofunction(event)
   // google.maps.event.addDomListener(window, 'load', initMap1);
 </script>
 
- <script>   
-//    setInterval(function(){
-//    	       
-//		var count=0;
-//				var xmlHttpRequest = getXMLHttpRequest();
-//				//xmlHttpRequest.onreadystatechange = getReadyStateHandler(xmlHttpRequest);
-//				xmlHttpRequest.open("POST", "TcpUtils?lampCounter1=" + -1 + "&i=" + 100, true);
-//				xmlHttpRequest.setRequestHeader("Content-Type",
-//						"application/x-www-form-urlencoded");
-//				xmlHttpRequest.send();
-//				count++;
-//    
-//    },2000);
-//  </script>
-
 </head>
 <body>
 	
     <div id="wrapper" class="hidden">
-		<a id="refresh" class="btn btn-info but"><i class="fa fa-refresh fa-2x"></i></a>
+	    <!--<a id="refresh1" class="btn btn-info but" style="bottom:100px;background-color:green;"><i class="fa fa-sitemap fa-2x"></i></a>
+		<a id="refresh" class="btn btn-info but" ><i class="fa fa-refresh fa-2x"></i></a>-->
+	<a id="refresh" class="btn btn-info but" style="right:50px;bottom:40px;"><i class="fa fa-refresh fa-2x"></i></a>
+        <a id="refresh1" class="but" style="right:200px;bottom:110px;background-color:#fff;border-color:#fff;height:0px;width:0px;"><img src="/images/new-refresh.png" height="70px" width="70px" ></img></a>
         <nav class="navbar navbar-default navbar-cls-top overlay_header" role="navigation" style="margin-bottom: 0;text-align: center;background-color: #E71A3B;">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
@@ -993,6 +981,7 @@ function Infofunction(event)
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.0.16/bootstrap-slider.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/tree.css">
 		<script type="text/javascript">
+		
 			function getObject(theObject) {
 				var result = null;
 				if(theObject instanceof Array) {
@@ -1014,6 +1003,7 @@ function Infofunction(event)
 					}
 				}
 			}
+			
 			$(document).ready(function() {
 				preval=0;
 				function getall(){
@@ -1042,6 +1032,21 @@ function Infofunction(event)
 					});
 				}
 				getall();
+				//sync function 
+				function syncall(){
+					var host = window.document.location.hostname;
+					var port = location.port;
+						$.ajax({
+						context: this,
+						type: "GET",
+						url: "http://" + host + ":" + port + "/syncall",
+						success: function (data) {
+							swal("", data, "");
+							getall();
+							
+					    }
+					});
+				}
 				$('#ex1').slider({
 					formatter: function(value) {
 						return 'Brightness level: ' + value;
@@ -1291,6 +1296,9 @@ function Infofunction(event)
 				});
 				$('#refresh').click(function(){
 					getall();
+				});
+				$('#refresh1').click(function(){
+					syncall();
 				});
 				$("#ex1").on("slideStop", function(slideEvt) {
 					setAllLightsPWM();
