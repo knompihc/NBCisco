@@ -318,6 +318,18 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	Levent := l_brightness_i
+         if Levent > 0 {
+                        if Levent <= 2 {
+                                l_event = "5"
+                        }else if Levent >2 && Levent<= 4 {
+                                l_event = "6"
+                        }else if Levent > 4 && Levent<= 6 {
+                                l_event = "7"
+                        }else if Levent > 6 && Levent<=8 {
+                                l_event = "8"
+                        }
+                }
 	_, bv := TokenParse_errorChecking(l_token)
 	if bv {
 		var LampController sguUtils.SguUtilsLampControllerStruct
@@ -1060,6 +1072,20 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
+	}else {
+	Levent := l_brightness_i
+	 if Levent > 0 {
+                        if Levent <= 2 {
+                                l_event = "5"
+                        }else if Levent >2 && Levent<= 4 {
+                                l_event = "6"
+                        }else if Levent > 4 && Levent<= 6 {
+                                l_event = "7"
+                        }else if Levent > 6 && Levent<=8 {
+                                l_event = "8"
+                        }
+                }
+
 	}
 	_, bv := TokenParse_errorChecking(l_token)
 	if bv {
@@ -1251,6 +1277,12 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
+	var NewStatus string
+	if l_brightness == "0"{
+		NewStatus = "0"
+	}else{
+		NewStatus = "1"
+	}
 	//l_data := NBLampStr.Data
 	//l_sgu := NBLampStr.Fdn.Gateway
 	//l_scu := NBLampStr.Fdn.Street_lamp
@@ -1307,6 +1339,18 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 		ans.Data.Message = "brightness is not in range"
 		return ans
 	}
+	Levent := l_brightness_i
+         if Levent > 0 {
+                        if Levent <= 2 {
+                                l_event = "5"
+                        }else if Levent >2 && Levent<= 4 {
+                                l_event = "6"
+                        }else if Levent > 4 && Levent<= 6 {
+                                l_event = "7"
+                        }else if Levent > 6 && Levent<=8 {
+                                l_event = "8"
+                        }
+                }
 	var LampController sguUtils.SguUtilsLampControllerStruct
 
 	/*	logger.Println(r.URL)
@@ -1389,6 +1433,7 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 						time.Sleep(du)
 						logger.Println("sent")
 						LampControllerChannel <- LampController
+						tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
 						logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
 
 					}
