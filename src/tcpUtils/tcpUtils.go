@@ -2408,11 +2408,11 @@ db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	rows ,err := db.Query("SELECT scu_id, status from scu_status")
+	defer rows.Close()
 	if err != nil{
 		logger.Println("error while sync status from DB: ",err)
 		return false
 	}else{
-		defer rows.Close()
 		var scu, state string
 		status.Lock()
 		for rows.Next(){
