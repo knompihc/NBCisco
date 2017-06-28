@@ -2521,18 +2521,6 @@ func SetScheduleForScu(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
 
 func SetScheduleForSgu(w http.ResponseWriter, r *http.Request) {
@@ -2726,18 +2714,6 @@ func SetScheduleForSgu(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
 
 func SetScheduleForZone(w http.ResponseWriter, r *http.Request) {
@@ -2908,19 +2884,8 @@ func SetScheduleForZone(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
+
 func SetScheduleForGroup(w http.ResponseWriter, r *http.Request) {
 	logger.Println("SetScheduleForGroup()")
 	var LampController sguUtils.SguUtilsLampControllerStruct
@@ -3088,19 +3053,8 @@ func SetScheduleForGroup(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
+
 func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 	logger.Println("SetScheduleForGroup()")
 	var ans NBResponseStruct
@@ -3247,19 +3201,8 @@ func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
+
 func GroupView(w http.ResponseWriter, r *http.Request) {
 
 	logger.Println("GroupVIew()")

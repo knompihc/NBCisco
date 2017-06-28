@@ -14,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"sguUtils"
+	"userMgmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -26,15 +27,10 @@ type scu struct {
 }
 
 func Getsculoc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -64,15 +60,10 @@ func Getsculoc(w http.ResponseWriter, r *http.Request) {
 }
 
 func Updatesculoc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	id := r.URL.Query().Get("id")
 	name := r.URL.Query().Get("name")
 	lat := r.URL.Query().Get("lat")
@@ -103,15 +94,10 @@ type parameter struct {
 }
 
 func Getdeploymentparameter(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -144,13 +130,7 @@ func Getdeploymentparameter(w http.ResponseWriter, r *http.Request) {
 }
 
 func Updatedeploymentparameter(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 
@@ -180,15 +160,10 @@ func Updatedeploymentparameter(w http.ResponseWriter, r *http.Request) {
 }
 
 func Adduser(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	email1 := r.URL.Query().Get("userid")
 	pass1 := r.URL.Query().Get("pass")
 	admin := r.URL.Query().Get("admin")

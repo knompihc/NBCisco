@@ -18,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"userMgmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sessions"
@@ -57,14 +58,9 @@ func Config_Params(scu_sch string, perscu_delay *string) {
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./ht/"))))
 }*/
+
 func Scuconfigure(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 
@@ -99,13 +95,7 @@ func Scuconfigure(w http.ResponseWriter, r *http.Request) {
 }
 
 func Scuview(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 
@@ -141,13 +131,7 @@ func Scuview(w http.ResponseWriter, r *http.Request) {
 }
 
 func Scuadd(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 
@@ -191,15 +175,10 @@ func Scuadd(w http.ResponseWriter, r *http.Request) {
 }
 
 func Scusave(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	sids := r.URL.Query().Get("ids")
 	scid := r.URL.Query().Get("sid")
 	pris := r.URL.Query().Get("pri")
@@ -257,15 +236,10 @@ func Scusave(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Saved Successfully!!")
 }
 func Sguconfigure(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -295,15 +269,10 @@ func Sguconfigure(w http.ResponseWriter, r *http.Request) {
 	//w.Write([]byte(script))
 }
 func Sguadd(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -373,15 +342,10 @@ func Sguadd(w http.ResponseWriter, r *http.Request) {
 }
 
 func Sguview(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -443,15 +407,10 @@ func Sguview(w http.ResponseWriter, r *http.Request) {
 	//w.Write([]byte(script))
 }
 func Sgusave(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	sids := r.URL.Query().Get("ids")
 	sgid := r.URL.Query().Get("sid")
 	pris := r.URL.Query().Get("pri")
@@ -520,15 +479,10 @@ func Sgusave(w http.ResponseWriter, r *http.Request) {
 }
 
 func Zoneconfiguresc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -558,15 +512,10 @@ func Zoneconfiguresc(w http.ResponseWriter, r *http.Request) {
 }
 
 func Zoneaddsc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -637,15 +586,10 @@ func Zoneaddsc(w http.ResponseWriter, r *http.Request) {
 }
 
 func Zoneview(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -721,15 +665,10 @@ func Zoneview(w http.ResponseWriter, r *http.Request) {
 }
 
 func Zonesavesc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	sids := r.URL.Query().Get("ids")
 	sgid := r.URL.Query().Get("sid")
 	pris := r.URL.Query().Get("pri")
@@ -798,15 +737,10 @@ func Zonesavesc(w http.ResponseWriter, r *http.Request) {
 }
 
 func Groupconfiguresc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -836,15 +770,10 @@ func Groupconfiguresc(w http.ResponseWriter, r *http.Request) {
 }
 
 func Groupaddsc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
@@ -914,15 +843,10 @@ func Groupaddsc(w http.ResponseWriter, r *http.Request) {
 	//w.Write([]byte(script))
 }
 func Groupsavesc(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	sids := r.URL.Query().Get("ids")
 	sgid := r.URL.Query().Get("sid")
 	pris := r.URL.Query().Get("pri")
@@ -991,15 +915,10 @@ func Groupsavesc(w http.ResponseWriter, r *http.Request) {
 }
 
 func Groupview(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db

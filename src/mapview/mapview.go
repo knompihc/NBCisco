@@ -18,10 +18,10 @@ import (
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/sessions"
 	//"time"
 	"sguUtils"
 	"tcpUtils"
+	"userMgmt"
 )
 
 type Zone struct {
@@ -77,8 +77,6 @@ type gro struct {
 	val resgrp
 }
 
-var store = sessions.NewCookieStore([]byte("something-very-secret"))
-
 /*func main() {
 	logger.Println("starting google map view")
 	http.Handle("/",http.FileServer(http.Dir("static")))
@@ -116,15 +114,10 @@ func InitMapview(dbCon dbUtils.DbUtilsStruct, logg *log.Logger) {
 }
 
 func Showmap(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	zid := r.URL.Query().Get("id")
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
@@ -178,15 +171,10 @@ func Showmap(w http.ResponseWriter, r *http.Request) {
 }
 
 func Getzone(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -215,15 +203,10 @@ func Getzone(w http.ResponseWriter, r *http.Request) {
 }
 
 func Getgroup(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -252,15 +235,10 @@ func Getgroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func Getall(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()

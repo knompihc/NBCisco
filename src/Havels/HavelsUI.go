@@ -31,9 +31,9 @@ import (
 	"strconv"
 	"strings"
 	"tcpServer"
-//	"tcpUtils"
 	"tcpUtils"
 	"time"
+	"userMgmt"
 
 	"github.com/context"
 	"github.com/go-github/github"
@@ -96,7 +96,6 @@ type names struct {
 	Name []string
 }
 
-//--------------------------------------------------------------------------------------------
 type viewrep struct {
 	Chk              string `json:"chk"`
 	Id               string `json:"id"`
@@ -179,13 +178,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 			logger.Println("Error quering database  for login information")
 			logger.Println(err)
 		} else {
-
 			for rows.Next() {
-
 				passed = true
 				session.Values["set"] = 1
 			}
-
 			rows.Close()
 		}
 	}
@@ -196,7 +192,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
 
 	} else {
-
 		fmt.Fprintf(w, "<h1>Invalid User Name Or Password</h1>")
 		//http.Error(w, "Invalid User Name Or Password\n",http.StatusInternalServerError)
 		//http.Redirect(w, r,  "index.html", http.StatusFound)
@@ -206,10 +201,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 		//<-timer1.C
 		//logger.Println("Timer stoped")
 		//http.Redirect(w, r,  "index.html", http.StatusFound)
-
 	}
-
 }
+
 func auth(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "auth")
 	logger.Println(session.Values["set"])
@@ -222,6 +216,7 @@ func auth(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "2")
 	}
 }
+
 func isAdmin(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "auth")
 	logger.Println("get admin=", session.Values["isadmin"])
@@ -232,6 +227,7 @@ func isAdmin(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "1")
 	}
 }
+
 func signout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "auth")
 	session.Values["set"] = 0
@@ -239,6 +235,7 @@ func signout(w http.ResponseWriter, r *http.Request) {
 	logger.Println("User logged out")
 	io.WriteString(w, "0")
 }
+
 func getUid(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "auth")
 	var uid string
@@ -252,11 +249,10 @@ func getUid(w http.ResponseWriter, r *http.Request) {
 		logger.Println("error")
 		/* not string */
 	}
-
 	io.WriteString(w, uid)
 }
-func adminlogin(w http.ResponseWriter, r *http.Request) {
 
+func adminlogin(w http.ResponseWriter, r *http.Request) {
 	passed := false
 
 	r.ParseForm()
@@ -302,12 +298,9 @@ func adminlogin(w http.ResponseWriter, r *http.Request) {
 			logger.Println("Error quering database  for login information")
 			logger.Println(err)
 		} else {
-
 			for rows.Next() {
-
 				passed = true
 			}
-
 			rows.Close()
 		}
 	}
@@ -319,9 +312,7 @@ func adminlogin(w http.ResponseWriter, r *http.Request) {
 		session.Save(r, w)
 		logger.Println("Matching entry found. Redirecting")
 		http.Redirect(w, r, "index.html", http.StatusFound)
-
 	} else {
-
 		fmt.Fprintf(w, "<h1>Invalid Admin User Name Or Password</h1>")
 		//http.Error(w, "Invalid User Name Or Password\n",http.StatusInternalServerError)
 		//http.Redirect(w, r,  "index.html", http.StatusFound)
@@ -331,20 +322,14 @@ func adminlogin(w http.ResponseWriter, r *http.Request) {
 		//<-timer1.C
 		//logger.Println("Timer stoped")
 		//http.Redirect(w, r,  "index.html", http.StatusFound)
-
 	}
-
 }
+
 func LocationAdd(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	var lastInsertId int
 	r.ParseForm()
 	// logic part of log in
@@ -376,19 +361,13 @@ func LocationAdd(w http.ResponseWriter, r *http.Request) {
 			//http.Redirect(w, r,  "index.html", http.StatusFound)
 		}
 	}
-
 }
 
 func getLocationNames(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	var name string
 	r.ParseForm()
 	// logic part of log in
@@ -434,15 +413,10 @@ func getLocationNames(w http.ResponseWriter, r *http.Request) {
 
 }
 func sguAdd(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	var lastInsertId1 int
 	r.ParseForm()
 	sgu_id := r.Form["sgu_id"]
@@ -471,15 +445,10 @@ func sguAdd(w http.ResponseWriter, r *http.Request) {
 
 }
 func AddSchedule(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	var en string
 
 	r.ParseForm()
@@ -629,15 +598,10 @@ func AddSchedule(w http.ResponseWriter, r *http.Request) {
 }
 
 func ViewSchedule(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	logger.Println("hi dear")
 	var scheid string
 
@@ -674,15 +638,10 @@ func ViewSchedule(w http.ResponseWriter, r *http.Request) {
 
 }
 func scuAdd(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	var lastInsertId1 int
 	r.ParseForm()
 	scu_id := r.Form["scu_id"]
@@ -714,16 +673,10 @@ func scuAdd(w http.ResponseWriter, r *http.Request) {
 }
 
 func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
-
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	var LampController sguUtils.SguUtilsLampControllerStruct
 
 	logger.Println(r.URL)
@@ -748,13 +701,13 @@ func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		Levent, err := strconv.Atoi(m["LampEvent"][0])
-		logger.Println("Received value of brightness: ",Levent)
+		logger.Println("Received value of brightness: ", Levent)
 		var NewStatus string
-                if Levent != 0 {
-                        NewStatus = "1"
-                }else{
-                        NewStatus = "0"
-                }
+		if Levent != 0 {
+			NewStatus = "1"
+		} else {
+			NewStatus = "0"
+		}
 
 		if err != nil {
 			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
@@ -763,17 +716,17 @@ func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
 		if Levent > 0 {
 			if Levent <= 2 {
 				Levent = 5
-			}else if Levent >2 && Levent<= 4 {
+			} else if Levent > 2 && Levent <= 4 {
 				Levent = 6
-			}else if Levent > 4 && Levent<= 6 {
+			} else if Levent > 4 && Levent <= 6 {
 				Levent = 7
-			}else if Levent > 6 && Levent<=8 {
+			} else if Levent > 6 && Levent <= 8 {
 				Levent = 8
 			}
 		}
-		logger.Println("Brightness value sent to SGU: ",Levent)
+		logger.Println("Brightness value sent to SGU: ", Levent)
 		LampController.LampEvent = Levent
-		
+
 		//GetSet field is set to set mode
 		LampController.LampEvent |= 0x100
 		LampController.PacketType = 0x3000
@@ -786,8 +739,8 @@ func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
 		LampController.ResponseSend = nil
 		LampControllerChannel <- LampController
 		logger.Println("Lamp event sent to channel")
-		tcpUtils.SetTempStatus(arrsc[i],NewStatus)		
-//tcpUtils.SetTempStatus(arrsc[i],NewStatus)
+		tcpUtils.SetTempStatus(arrsc[i], NewStatus)
+		//tcpUtils.SetTempStatus(arrsc[i],NewStatus)
 	}
 	//logger.Println(m)
 	//logger.Println(m["SGUID"][0])
@@ -850,13 +803,7 @@ func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
 }
 
 func LampControl(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 
@@ -922,29 +869,29 @@ func LampControl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Levent, err := strconv.Atoi(m["LampEvent"][0])
-	logger.Println("Received value of brightness: ",Levent)
-		if err != nil {
-			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
-			return
+	logger.Println("Received value of brightness: ", Levent)
+	if err != nil {
+		logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
+		return
+	}
+	var NewStatus string
+	if Levent != 0 {
+		NewStatus = "1"
+	} else {
+		NewStatus = "0"
+	}
+	if Levent > 0 {
+		if Levent <= 2 {
+			Levent = 5
+		} else if Levent > 2 && Levent <= 4 {
+			Levent = 6
+		} else if Levent > 4 && Levent <= 6 {
+			Levent = 7
+		} else if Levent > 6 && Levent <= 8 {
+			Levent = 8
 		}
-		var NewStatus string
-                if Levent != 0 {
-                        NewStatus = "1"
-                }else{
-                        NewStatus = "0"
-                }
-		if Levent > 0 {
-			if Levent <= 2 {
-				Levent = 5
-			}else if Levent >2 && Levent<= 4 {
-				Levent = 6
-			}else if Levent > 4 && Levent<= 6 {
-				Levent = 7
-			}else if Levent > 6 && Levent<=8 {
-				Levent = 8
-			}
-		}
-	logger.Println("Brightness value sent to SGU: ",Levent)
+	}
+	logger.Println("Brightness value sent to SGU: ", Levent)
 	LampController.LampEvent = Levent
 	//GetSet field is set to set mode
 	LampController.LampEvent |= 0x100
@@ -966,23 +913,17 @@ func LampControl(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("LampId = %d, LampVal = %d\n", LampId, LampVal)
 	LampControllerChannel <- LampController
 	logger.Println("Lamp event sent to channel")
-	tcpUtils.SetTempStatus(m["SCUID"][0],NewStatus)
+	tcpUtils.SetTempStatus(m["SCUID"][0], NewStatus)
 	//wait for response
 	//TBD. Add a timeout here
 	<-LampController.ResponseSend
 
 }
 func AllLampControl(w http.ResponseWriter, r *http.Request) {
-
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	var LampController sguUtils.SguUtilsLampControllerStruct
 
 	logger.Println(r.URL)
@@ -1006,31 +947,31 @@ func AllLampControl(w http.ResponseWriter, r *http.Request) {
 			logger.Println("Invalid SCUID" + arrsc[i] + " specified")
 			return
 		}
-		
+
 		Levent, err := strconv.Atoi(m["LampEvent"][0])
-		logger.Println("Received value of brightness: ",Levent)
+		logger.Println("Received value of brightness: ", Levent)
 		if err != nil {
 			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
 			return
 		}
 		var NewStatus string
-                if Levent != 0 {
-                        NewStatus = "1"
-                }else{
-                        NewStatus = "0"
-                }
+		if Levent != 0 {
+			NewStatus = "1"
+		} else {
+			NewStatus = "0"
+		}
 		if Levent > 0 {
 			if Levent <= 2 {
 				Levent = 5
-			}else if Levent >2 && Levent<= 4 {
+			} else if Levent > 2 && Levent <= 4 {
 				Levent = 6
-			}else if Levent > 4 && Levent<= 6 {
+			} else if Levent > 4 && Levent <= 6 {
 				Levent = 7
-			}else if Levent > 6 && Levent<=8 {
+			} else if Levent > 6 && Levent <= 8 {
 				Levent = 8
 			}
-		} 
-		logger.Println("Brightness value sent to SGU: ",Levent)
+		}
+		logger.Println("Brightness value sent to SGU: ", Levent)
 		LampController.LampEvent = Levent
 		//GetSet field is set to set mode
 		LampController.LampEvent |= 0x100
@@ -1044,22 +985,17 @@ func AllLampControl(w http.ResponseWriter, r *http.Request) {
 		LampController.ResponseSend = nil
 		LampControllerChannel <- LampController
 		logger.Println("Lamp event sent to channel")
-		tcpUtils.SetTempStatus(arrsc[i],NewStatus)
+		tcpUtils.SetTempStatus(arrsc[i], NewStatus)
 		du, _ := time.ParseDuration(per_scu_delay + "s")
 		time.Sleep(du)
 	}
 }
 func AddEnergyParameter(w http.ResponseWriter, r *http.Request) {
-	var energysguutil sguUtils.SguUtilsLampControllerStruct
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
+	var energysguutil sguUtils.SguUtilsLampControllerStruct
 	var SGUID string
 	deviceId, _ := strconv.ParseInt(r.URL.Query().Get("DeviceID"), 10, 64)
 	Length, _ := strconv.ParseInt(r.URL.Query().Get("Length"), 10, 64)
@@ -1142,16 +1078,11 @@ func AddEnergyParameter(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func Communparams(w http.ResponseWriter, r *http.Request) {
-	var energysguutil sguUtils.SguUtilsLampControllerStruct
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
+	var energysguutil sguUtils.SguUtilsLampControllerStruct
 	logger.Println("Inside 9000 packet parameters ")
 	var SGUID string
 	baudRate, _ := strconv.ParseInt(r.URL.Query().Get("baud_rate"), 10, 64)
@@ -1222,17 +1153,13 @@ func Communparams(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func Polingparams(w http.ResponseWriter, r *http.Request) {
-	var energysguutil sguUtils.SguUtilsLampControllerStruct
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	logger.Println("Inside A000 packet parameters ")
+	var energysguutil sguUtils.SguUtilsLampControllerStruct
+
 	var SGUID string
 	packetEnable, _ := strconv.ParseInt(r.URL.Query().Get("packet_enable"), 10, 64)
 	pollingRate, _ := strconv.ParseInt(r.URL.Query().Get("polling_rate"), 10, 64)
@@ -1371,7 +1298,6 @@ func ViewInventory(w http.ResponseWriter, r *http.Request) {
 			}
 			cnt++
 		}
-
 		res.Close()
 	}
 	logger.Println(w, quantity)
@@ -1420,9 +1346,7 @@ func UpdateInventory(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			cnt++
-
 		}
-
 	}
 
 	lampQty = Lamps
@@ -1499,13 +1423,7 @@ func UpdateInventory(w http.ResponseWriter, r *http.Request) {
 }
 
 func supportDefinition(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 	subject1 := r.URL.Query().Get("support_sub")
@@ -1547,15 +1465,10 @@ func supportDefinition(w http.ResponseWriter, r *http.Request) {
 }
 
 func supportCP(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	email1 := r.URL.Query().Get("support_email")
 	pass := r.URL.Query().Get("pass")
 	pass1 := r.URL.Query().Get("pass1")
@@ -1759,15 +1672,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 func getreportperson(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -1794,15 +1702,10 @@ func getreportperson(w http.ResponseWriter, r *http.Request) {
 }
 
 func sguotadisplay(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -1842,15 +1745,10 @@ func sguotadisplay(w http.ResponseWriter, r *http.Request) {
 }
 
 func scuotadisplay(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -1890,15 +1788,10 @@ func scuotadisplay(w http.ResponseWriter, r *http.Request) {
 }
 
 func getalertperson(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
@@ -1927,15 +1820,10 @@ func getalertperson(w http.ResponseWriter, r *http.Request) {
 func deletereportperson(w http.ResponseWriter, r *http.Request) {
 	qids := r.URL.Query().Get("ids")
 
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	//logger.Println("Select distinct van_id from booking where id in ("+qids+")")
 	rows, err := dbController.Db.Query("delete from reportcofig where id in (" + qids + ")")
 	defer rows.Close()
@@ -1950,15 +1838,10 @@ func deletereportperson(w http.ResponseWriter, r *http.Request) {
 func deletealertperson(w http.ResponseWriter, r *http.Request) {
 	qids := r.URL.Query().Get("ids")
 
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	//logger.Println("Select distinct van_id from booking where id in ("+qids+")")
 	rows, err := dbController.Db.Query("delete from admin where id in (" + qids + ")")
 	defer rows.Close()
@@ -1969,14 +1852,9 @@ func deletealertperson(w http.ResponseWriter, r *http.Request) {
 	}
 	io.WriteString(w, "1")
 }
+
 func alluserview(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 	db := dbController.Db
@@ -2014,15 +1892,10 @@ func alluserview(w http.ResponseWriter, r *http.Request) {
 func deleteuserperson(w http.ResponseWriter, r *http.Request) {
 	qids := r.URL.Query().Get("ids")
 	logger.Println(qids)
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	//logger.Println("Select distinct van_id from booking where id in ("+qids+")")
 	rows, err := dbController.Db.Query("delete from login where CAST(AES_DECRYPT(user_email,'234FHF?#@$#%%jio4323486') AS CHAR(10000) CHARACTER SET utf8 ) in (" + qids + ")")
 	defer rows.Close()
@@ -2054,6 +1927,7 @@ func my(w http.ResponseWriter, r *http.Request) {
 	}
 	chttp.ServeHTTP(w, r)
 }
+
 func handlePanic() {
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -2123,15 +1997,10 @@ type survey struct {
 }
 
 func callback(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	code := r.URL.Query().Get("code")
 	logger.Println(code)
 
@@ -2200,7 +2069,6 @@ func callback(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
 		http.Redirect(w, r, "ota.html", http.StatusFound)
 		return
 	}
@@ -2209,13 +2077,7 @@ func callback(w http.ResponseWriter, r *http.Request) {
 }
 
 func setrepo(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 	dev := r.URL.Query().Get("dev")
@@ -2314,15 +2176,10 @@ func getallrepo(w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadSguRepo(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	logger.Println("Checking SGUs")
 	sids := r.URL.Query().Get("ids")
 	//rurl:=r.URL.Query().Get("url")
@@ -2419,15 +2276,10 @@ func downloadSguRepo(w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadScuRepo(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	logger.Println("Checking SCUs")
 	sids := r.URL.Query().Get("ids")
 	//rurl:=r.URL.Query().Get("url")
@@ -2533,15 +2385,10 @@ func downloadScuRepo(w http.ResponseWriter, r *http.Request) {
 }
 
 func getallbranchesforRepo(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	str := gitrepos{}
 	dev := r.URL.Query().Get("dev")
 	str.Fullname = (r.URL.Query().Get("fname"))
@@ -2591,15 +2438,10 @@ func getallbranchesforRepo(w http.ResponseWriter, r *http.Request) {
 }
 
 func connectrepo(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	str := gitdb{}
 	dev := r.URL.Query().Get("dev")
 	str.Fullname = (r.URL.Query().Get("fname"))
@@ -2628,15 +2470,10 @@ func connectrepo(w http.ResponseWriter, r *http.Request) {
 }
 
 func getconnectedrepo(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dev := r.URL.Query().Get("dev")
 	db := dbController.Db
 	rows, err := db.Query("select detail,major,minor,firmware_name from ota_server where deployment_id='" + Deployment_id + "' and device='" + dev + "'")
@@ -2672,15 +2509,10 @@ func getconnectedrepo(w http.ResponseWriter, r *http.Request) {
 
 }
 func gitconnected(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	dev := r.URL.Query().Get("dev")
 	db := dbController.Db
 	rows, err := db.Query("select access_token from ota_server where deployment_id='" + Deployment_id + "' and device='" + dev + "'")
@@ -2701,15 +2533,10 @@ func gitconnected(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "2")
 }
 func saveLocation(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	str := survey{}
 	str.Usr = r.URL.Query().Get("usr")
 	str.Pno = r.URL.Query().Get("pno")
@@ -2762,15 +2589,10 @@ func saveLocation(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteLocation(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	str := survey{}
 	str.Lat = r.URL.Query().Get("lat")
 	str.Lng = r.URL.Query().Get("lng")
@@ -2788,15 +2610,10 @@ func deleteLocation(w http.ResponseWriter, r *http.Request) {
 }
 
 func getLocation(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 
 	rows, err := db.Query("select usr,pno,loc,rw,pso,pla,height,pty,opw,lf,earth,phase,fun,lul,lat,lng from survey")
@@ -2881,15 +2698,10 @@ func getLocation(w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadLocation(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"] == 1 {
-		http.Redirect(w, r, "adminlogin.html", http.StatusFound)
-		return
-	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-		http.Redirect(w, r, "login.html", http.StatusFound)
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	db := dbController.Db
 
 	rows, err := db.Query("select usr,pno,loc,rw,pso,pla,height,pty,opw,lf,earth,phase,fun,lul,lat,lng from survey")
@@ -3120,21 +2932,20 @@ func downloadLocation(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func SyncAll(w http.ResponseWriter, r *http.Request){
+func SyncAll(w http.ResponseWriter, r *http.Request) {
 
-logger.Println("SyncAll")
-        state := tcpUtils.SyncFromDB()
-        if !state {
-w.Write([]byte("Sync Error"))
-//      http.Redirect(w, r, "map-view.html", http.StatusFound)
-                return
-        }else{
-w.Write([]byte("Sync Successfull"))
-        //      http.Redirect(w, r, "map-view.html", http.StatusFound)
-        }
-        return
+	logger.Println("SyncAll")
+	state := tcpUtils.SyncFromDB()
+	if !state {
+		w.Write([]byte("Sync Error"))
+		//      http.Redirect(w, r, "map-view.html", http.StatusFound)
+		return
+	} else {
+		w.Write([]byte("Sync Successfull"))
+		//      http.Redirect(w, r, "map-view.html", http.StatusFound)
+	}
+	return
 }
-
 
 func main() {
 	rollbar.Token = rollbarToken
@@ -3153,11 +2964,11 @@ func main() {
 	}
 	Sgu_firmware = make(map[int64][]byte)
 	Scu_firmware = make(map[int64][]byte)
-//	port := os.Getenv("PORT")
+	//	port := os.Getenv("PORT")
 	//logger.Println("new logger")
 
 	logger.Println("Recovering from  error")
-	port :="8080"
+	port := "8080"
 	if port == "" {
 		logger.Println("$PORT must be set")
 	}
@@ -3228,7 +3039,7 @@ func main() {
 	chttp.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/", my)
 	state1 := tcpUtils.SyncFromDB()
-	if state1{
+	if state1 {
 		logger.Println("SCUs status synced from DB")
 	}
 	//logger.Println("directory Set")
@@ -3366,18 +3177,18 @@ func main() {
 		logger.Println("error in sync SCU Status from DB")
 	}
 	//err = http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
-go func(){
-	 err1 := http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
-	if err1 != nil {
-		logger.Println("Failed to start http server")
-		logger.Print(err.Error())
-	}
-  }()
+	go func() {
+		err1 := http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
+		if err1 != nil {
+			logger.Println("Failed to start http server")
+			logger.Print(err.Error())
+		}
+	}()
 	err2 := http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
 	if err2 != nil {
-                logger.Println("Failed to start https  server")
-                logger.Print(err.Error())
-        }
+		logger.Println("Failed to start https  server")
+		logger.Print(err.Error())
+	}
 
 	close(StartSendSMSThreadDone)
 	close(HandleSguConnectionsDone)
