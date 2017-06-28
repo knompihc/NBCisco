@@ -9,7 +9,6 @@
 package dbUtils
 
 import (
-	//  "fmt"
 	"database/sql"
 	"log"
 	"runtime"
@@ -48,7 +47,6 @@ func (DbUtilsStructPtr *DbUtilsStruct) CreateDBTable(qStatement string) {
 		log.Println("Error creating transaction")
 		log.Println(DbUtilsStructPtr.Err)
 		return
-
 	}
 
 	DbUtilsStructPtr.Stmt, DbUtilsStructPtr.Err = DbUtilsStructPtr.Tx.Prepare(qStatement)
@@ -58,7 +56,6 @@ func (DbUtilsStructPtr *DbUtilsStruct) CreateDBTable(qStatement string) {
 		log.Println("Error creating statement")
 		log.Println(DbUtilsStructPtr.Err)
 		return
-
 	}
 
 	if enableLogs {
@@ -74,19 +71,13 @@ func (DbUtilsStructPtr *DbUtilsStruct) CreateDBTable(qStatement string) {
 		DbUtilsStructPtr.Tx.Rollback()
 
 	} else {
-
 		DbUtilsStructPtr.Tx.Commit()
-
 	}
 
 	DbUtilsStructPtr.Stmt.Close()
-
 }
 
-//*************************************************************************************************************************************************************
-
 func CreateDeployment_ParameterTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -104,11 +95,9 @@ func CreateDeployment_ParameterTable(DbUtilsStructPtr *DbUtilsStruct) {
 		",server_pkt_ack_delay	VARCHAR(128)	NOT NULL) \n"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateOta_ServerTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -123,13 +112,9 @@ func CreateOta_ServerTable(DbUtilsStructPtr *DbUtilsStruct) {
 		",access_token VARCHAR(200) NULL,detail VARCHAR(1000) NULL,major VARCHAR(50) NULL,minor VARCHAR(50) NULL,firmware_name VARCHAR(200) NULL) \n"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
-//*************************************************************************************************************************************************************
-
 func CreateUserAuthTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -142,11 +127,9 @@ func CreateUserAuthTable(DbUtilsStructPtr *DbUtilsStruct) {
 		",UserPasswd	VARCHAR(24)	NOT NULL) \n"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateScustatusTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -154,15 +137,12 @@ func CreateScustatusTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create scu_status table if not already created
-
 	qStatement = "CREATE TABLE IF NOT EXISTS `scu_status` (`scu_id` bigint(20) NOT NULL,`timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,`status` int(11) NOT NULL,PRIMARY KEY (`scu_id`))"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateZoneTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -170,14 +150,12 @@ func CreateZoneTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create zone table if not already created
-
 	qStatement = "CREATE TABLE IF NOT EXISTS `zone` (`id` int(11) NOT NULL AUTO_INCREMENT,`name` varchar(120) NOT NULL,PRIMARY KEY (`id`))"
-	DbUtilsStructPtr.CreateDBTable(qStatement)
 
+	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
 
 func CreateSurveyTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -185,13 +163,12 @@ func CreateSurveyTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create zone table if not already created
-
 	qStatement = "CREATE TABLE IF NOT EXISTS `survey` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `usr` varchar(200) DEFAULT NULL,\n  `pno` varchar(200) DEFAULT NULL,\n  `mun` varchar(200) DEFAULT NULL,\n  `ward` varchar(200) DEFAULT NULL,\n  `loc` varchar(200) DEFAULT NULL,\n  `rw` varchar(200) DEFAULT NULL,\n  `pso` varchar(200) DEFAULT NULL,\n  `pla` varchar(200) DEFAULT NULL,\n  `height` varchar(200) DEFAULT NULL,\n  `pty` varchar(200) DEFAULT NULL,\n  `opw` varchar(200) DEFAULT NULL,\n  `lf` varchar(200) DEFAULT NULL,\n  `earth` varchar(200) DEFAULT NULL,\n  `phase` varchar(200) DEFAULT NULL,\n  `fun` varchar(200) DEFAULT NULL,\n  `lul` varchar(200) DEFAULT NULL,\n  `lat` varchar(200) DEFAULT NULL,\n  `lng` varchar(200) DEFAULT NULL,\n  PRIMARY KEY (`id`)\n)"
+
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
-func CreateGroupScuTable(DbUtilsStructPtr *DbUtilsStruct) {
 
+func CreateGroupScuTable(DbUtilsStructPtr *DbUtilsStruct) {
 	var qStatement string
 
 	if enableLogs {
@@ -199,14 +176,12 @@ func CreateGroupScuTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create zone table if not already created
-
 	qStatement = "CREATE TABLE IF NOT EXISTS `groupscu` (`id` int(11) NOT NULL AUTO_INCREMENT,`name` varchar(120) NOT NULL,PRIMARY KEY (`id`))"
-	DbUtilsStructPtr.CreateDBTable(qStatement)
 
+	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
 
 func CreateZoneSguTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -214,26 +189,24 @@ func CreateZoneSguTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create zonesgu table if not already created
-
 	qStatement = "CREATE TABLE IF NOT EXISTS `zone_sgu` (`id` int(11) NOT NULL AUTO_INCREMENT,`zid` int(11) NOT NULL,`sguid` bigint(20) NOT NULL,PRIMARY KEY (`id`))"
-	DbUtilsStructPtr.CreateDBTable(qStatement)
 
+	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
 
 func CreateGroupScuRelTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
 		log.Println("Creating statement for GroupScuRel Table")
 	}
-
 	//create zonesgu table if not already created
 
 	qStatement = "CREATE TABLE IF NOT EXISTS `group_scu_rel` (`id` int(11) NOT NULL AUTO_INCREMENT,`gid` int(11) NOT NULL,`scuid` bigint(20) NOT NULL,PRIMARY KEY (`id`))"
-	DbUtilsStructPtr.CreateDBTable(qStatement)
 
+	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
+
 func CreateParametersTable(DbUtilsStructPtr *DbUtilsStruct) {
 	var qStatement string
 
@@ -242,14 +215,12 @@ func CreateParametersTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create parameters table if not already created
-
 	qStatement = "CREATE TABLE IF NOT EXISTS `parameters` (`id` int(11) NOT NULL AUTO_INCREMENT,`sgu_id` bigint(20) NOT NULL,`timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,`Vr` double DEFAULT NULL,`Vy` double DEFAULT NULL,`Vb` double DEFAULT NULL,`Ir` double DEFAULT NULL,`Iy` double DEFAULT NULL,`Ib` double DEFAULT NULL,`Pf` double DEFAULT NULL,`KW` double DEFAULT NULL,`KVA` double DEFAULT NULL,`KWH` double DEFAULT NULL,`KVAH` double DEFAULT NULL,`rKVAH` double DEFAULT NULL,`Run_Hours` double DEFAULT NULL,`freq` double DEFAULT NULL,PRIMARY KEY (`id`))"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
 
 func CreateInvTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -261,10 +232,9 @@ func CreateInvTable(DbUtilsStructPtr *DbUtilsStruct) {
 	qStatement = "CREATE TABLE IF NOT EXISTS `inventory` ( id INT(11)	PRIMARY KEY NOT NULL UNIQUE  AUTO_INCREMENT ,`AssetType` varchar(10) default NULL,`Description` varchar(100) default NULL,`Quantity` int(11) default NULL)"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
-func CreateDeploymentTable(DbUtilsStructPtr *DbUtilsStruct) {
 
+func CreateDeploymentTable(DbUtilsStructPtr *DbUtilsStruct) {
 	var qStatement string
 
 	if enableLogs {
@@ -273,11 +243,11 @@ func CreateDeploymentTable(DbUtilsStructPtr *DbUtilsStruct) {
 
 	//create Inv table if not already created
 	qStatement = "CREATE TABLE IF NOT EXISTS `deployment` ( `id` int(11) NOT NULL AUTO_INCREMENT,  `deployment_id` varchar(10) NOT NULL,  PRIMARY KEY (`id`))"
+
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
-func CreateAdminTable(DbUtilsStructPtr *DbUtilsStruct) {
 
+func CreateAdminTable(DbUtilsStructPtr *DbUtilsStruct) {
 	var qStatement string
 
 	if enableLogs {
@@ -286,12 +256,11 @@ func CreateAdminTable(DbUtilsStructPtr *DbUtilsStruct) {
 
 	//create Admin table if not already created
 	qStatement = "CREATE TABLE IF NOT EXISTS `admin` (`id` int(11) NOT NULL AUTO_INCREMENT,`name` varchar(45) NOT NULL,`email_id` varchar(45) NOT NULL,`mobile_num` varchar(20) NOT NULL,PRIMARY KEY (`id`))"
-	DbUtilsStructPtr.CreateDBTable(qStatement)
 
+	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
 
 func CreateIdqueryTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -302,11 +271,9 @@ func CreateIdqueryTable(DbUtilsStructPtr *DbUtilsStruct) {
 	qStatement = "CREATE TABLE IF NOT EXISTS `idquerydefinition` (id INT(11)	PRIMARY KEY NOT NULL UNIQUE  AUTO_INCREMENT ,`deviceid` int(3) default NULL,`length` int(8) default NULL,`query` varchar(500) default NULL) "
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateReportconfTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -314,14 +281,12 @@ func CreateReportconfTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create reportConf if not already created
-	//qStatement ="CREATE TABLE IF NOT EXISTS `reportcofig` (`reportfrequency` varchar(45) DEFAULT NULL,`preferredprocessingtime` time DEFAULT NULL,`nextreportgendate` varchar(45) DEFAULT NULL,`reportdef_userid` varchar(45) DEFAULT NULL,`idreportdefination` int(11) NOT NULL AUTO_INCREMENT,PRIMARY KEY (`idreportdefination`))"
 	qStatement = "CREATE TABLE IF NOT EXISTS `reportcofig` (`id` int(11) NOT NULL AUTO_INCREMENT,`reportfrequency` varchar(45) NOT NULL,`reportdef_userid` varchar(45) NOT NULL,`next` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,`type` varchar(45) NOT NULL,PRIMARY KEY (`id`))"
-	DbUtilsStructPtr.CreateDBTable(qStatement)
 
+	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
 
 func CreateTestLoginTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -332,11 +297,9 @@ func CreateTestLoginTable(DbUtilsStructPtr *DbUtilsStruct) {
 	qStatement = "CREATE TABLE IF NOT EXISTS login ( user_email varbinary(200) PRIMARY KEY, password BLOB, `admin_op` int(11) DEFAULT NULL)\n"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateUserTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -344,15 +307,12 @@ func CreateUserTable(DbUtilsStructPtr *DbUtilsStruct) {
 	}
 
 	//create user table if not already created
-
 	qStatement = "CREATE TABLE IF NOT EXISTS `user` (`userid` varchar(45) NOT NULL,	PRIMARY KEY (`userid`)	)"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateSGUTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -364,11 +324,9 @@ func CreateSGUTable(DbUtilsStructPtr *DbUtilsStruct) {
 		"location_name varchar(45) NOT NULL DEFAULT ' ',location_lat double precision, location_lng double precision, major varchar(50), minor varchar(50), status varchar(100))"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateScheduleTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -387,11 +345,9 @@ func CreateScheduleTable(DbUtilsStructPtr *DbUtilsStruct) {
 		"UNIQUE KEY `idschedule_UNIQUE` (`idschedule`))"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateScuconfigureTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -402,11 +358,9 @@ func CreateScuconfigureTable(DbUtilsStructPtr *DbUtilsStruct) {
 	qStatement = "CREATE TABLE IF NOT EXISTS `scuconfigure` (`idSCUSchedule` bigint NOT NULL AUTO_INCREMENT,`ScheduleID` bigint DEFAULT NULL,`Timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,`ScuID` bigint DEFAULT NULL,`SchedulingID` int(11) DEFAULT NULL,`PWM` int(11) DEFAULT NULL,`ScheduleStartTime` timestamp NULL DEFAULT NULL,`ScheduleEndTime` timestamp NULL DEFAULT NULL,	`ScheduleExpression` varchar(200) DEFAULT NULL,	PRIMARY KEY (`idSCUSchedule`))"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateSCUTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -419,11 +373,9 @@ func CreateSCUTable(DbUtilsStructPtr *DbUtilsStruct) {
 		"location_name varchar(45),location_lat double precision, location_lng double precision, major varchar(50), minor varchar(50), status varchar(100))"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreateLocationTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -437,11 +389,9 @@ func CreateLocationTable(DbUtilsStructPtr *DbUtilsStruct) {
 		"creator_id   varchar(45),  creation_time time)"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func CreatesupportdefinitionTable(DbUtilsStructPtr *DbUtilsStruct) {
-
 	var qStatement string
 
 	if enableLogs {
@@ -461,36 +411,27 @@ func CreatesupportdefinitionTable(DbUtilsStructPtr *DbUtilsStruct) {
 		"PRIMARY KEY (`idsupportdefinition`))"
 
 	DbUtilsStructPtr.CreateDBTable(qStatement)
-
 }
 
 func (DbUtilsStructPtr *DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
-
 	logger = logg
 	var dbinfo string
 
 	if runtime.GOOS == "windows" {
-
 		if !useRemoteDB {
 
 			//dbinfo = "--host=localhost --user=root --database=test --password=admin123"
 			dbinfo = "root:admin123@tcp(localhost:3306)/test"
-
 		} else {
-
 			//db in oragon
 			//dbinfo = "--host=mysql.cqwf1pvghoch.us-west-2.rds.amazonaws.com --user=HavellsDBAdmin --database=HavellsCCMSDatabase  --password=HavellsCCMS420HavellsCCMS420"
 			dbinfo = "HavellsDBAdmin:HavellsCCMS420@tcp(mysql.cqwf1pvghoch.us-west-2.rds.amazonaws.com:3306)/HavellsCCMSTest"
-
 		}
-
 	} else {
-
 		if !useRemoteDB {
 
 			//dbinfo = "--host=localhost --user=root --database=test --password=admin123"
 			dbinfo = "root:pass@tcp(localhost:3306)/HavellsCCMSTest"
-
 		} else {
 			//db in oragon
 			dbinfo = "HavellsDBAdmin:HavellsCCMS420@tcp(mysql.cqwf1pvghoch.us-west-2.rds.amazonaws.com:3306)/HavellsCCMSDatabase"
@@ -500,11 +441,9 @@ func (DbUtilsStructPtr *DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
 
 		//use line below for Heroku
 		//DbUtilsStructPtr.Db , DbUtilsStructPtr.Err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
-
 	}
 
 	DbUtilsStructPtr.Db, DbUtilsStructPtr.Err = sql.Open("mysql", dbinfo)
-	//DbUtilsStructPtr.Db , DbUtilsStructPtr.Err = sql.Open("postgres", dbinfo)
 
 	//db, Err := sql.Open("mysql", "tcp:localhost:3306*mydb/root/admin123")
 	if DbUtilsStructPtr.Err != nil {
@@ -530,11 +469,8 @@ func (DbUtilsStructPtr *DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
 	CreateTestLoginTable(DbUtilsStructPtr)
 
 	//create non existane tables
-
 	CreateLocationTable(DbUtilsStructPtr)
-
 	CreateSGUTable(DbUtilsStructPtr)
-
 	CreateSCUTable(DbUtilsStructPtr)
 	CreateScheduleTable(DbUtilsStructPtr)
 	CreateScuconfigureTable(DbUtilsStructPtr)
