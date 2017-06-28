@@ -29,9 +29,9 @@ import (
 	"strconv"
 	"strings"
 	//	"tcpServer"
+	"sync"
 	"tcpUtils"
 	"time"
-	"sync"
 	//	"github.com/context"
 	"github.com/jwt-go-master"
 	//	"github.com/scorredoira/email"
@@ -63,6 +63,7 @@ func InitNBApis(LampConChannel chan sguUtils.SguUtilsLampControllerStruct, dbcon
 	LampControllerChannel = LampConChannel
 	dbController = dbcon
 }
+
 func Config_Params(scu_sch, per_scudelay string) {
 	scu_scheduling = scu_sch + "s"
 	per_scu_delay = per_scudelay
@@ -77,6 +78,7 @@ type NBFdn struct {
 	Id          string `json:"id"`
 	Zone        string `json:"zone_id"`
 }
+
 type NBData struct {
 	Brightness    string                                  `json:"brightness"`
 	Message       string                                  `json:"msg"`
@@ -97,6 +99,7 @@ type NBData struct {
 	Zone          string                                  `json:"zone_name"`
 	//Group         string                                  `json:"group_id"`
 }
+
 type NBAllLampControlStruct struct {
 	Token  string `json:"token"`
 	Object string `json:"object"`
@@ -104,11 +107,13 @@ type NBAllLampControlStruct struct {
 	Opr    string `json:"opr"`
 	Data   NBData `json:"data"`
 }
+
 type NBResponseStruct struct {
 	Response_status string `json:"response_status"`
 	Data            NBData `json:"data"`
 	End             string `json:"end"`
 }
+
 type GatewayResponse struct {
 	Response_status string `json:"response_status"`
 	//data            interface{} `json:"data"`
@@ -132,6 +137,7 @@ type ScheduleStr struct {
 	Brightness string `json:"brightness"`
 	//Priority   string `json:"priority"`
 }
+
 type SCUVIewStr struct {
 	//Id         string `json:"schedule_id"`
 	SSDate     string `json:"from_date"`
@@ -141,6 +147,7 @@ type SCUVIewStr struct {
 	Brightness string `json:"brightness"`
 	Priority   string `json:"priority"`
 }
+
 type ScheduleResp struct {
 	Response_status string                            `json:"response_status"`
 	Data            map[string]map[string]ScheduleStr `json:"data"`
@@ -232,11 +239,11 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data 
+	//l_data := NBLampStr.Data
 	var NewStatus string
 	if l_brightness != "0" {
 		NewStatus = "1"
-	}else{
+	} else {
 		NewStatus = "0"
 	}
 	l_sgu := NBLampStr.Fdn.Gateway
@@ -319,17 +326,17 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Levent := l_brightness_i
-         if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	if Levent > 0 {
+		if Levent <= 2 {
+			l_event = "5"
+		} else if Levent > 2 && Levent <= 4 {
+			l_event = "6"
+		} else if Levent > 4 && Levent <= 6 {
+			l_event = "7"
+		} else if Levent > 6 && Levent <= 8 {
+			l_event = "8"
+		}
+	}
 	_, bv := TokenParse_errorChecking(l_token)
 	if bv {
 		var LampController sguUtils.SguUtilsLampControllerStruct
@@ -412,8 +419,8 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		//LampController.ResponseSend  = make(chan bool)
 		LampController.W = nil
 		LampController.ResponseSend = nil
-		LampControllerChannel <- LampController 
-		tcpUtils.SetTempStatus(l_scu,NewStatus)
+		LampControllerChannel <- LampController
+		tcpUtils.SetTempStatus(l_scu, NewStatus)
 		logger.Println("Lamp event sent to channel")
 		du, _ := time.ParseDuration(per_scu_delay + "s")
 		time.Sleep(du)
@@ -658,6 +665,7 @@ func validateSGU(p_sgu string) bool {
 		return false
 	}
 }
+
 func validateSCU(p_scu string) bool {
 	if len(p_scu) == 16 {
 		return true
@@ -665,6 +673,7 @@ func validateSCU(p_scu string) bool {
 		return false
 	}
 }
+
 func TokenParse_errorChecking(myToken string) (string, bool) {
 	var uid string
 	/*if tokenMap[myToken]!=1{
@@ -974,13 +983,13 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data 
+	//l_data := NBLampStr.Data
 	var NewStatus string
 	if l_brightness != "0" {
 		NewStatus = "1"
-	}else{
+	} else {
 		NewStatus = "0"
-	}	
+	}
 
 	l_sgu := NBLampStr.Fdn.Gateway
 	l_scu := NBLampStr.Fdn.Street_lamp
@@ -1072,19 +1081,19 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-	}else {
-	Levent := l_brightness_i
-	 if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	} else {
+		Levent := l_brightness_i
+		if Levent > 0 {
+			if Levent <= 2 {
+				l_event = "5"
+			} else if Levent > 2 && Levent <= 4 {
+				l_event = "6"
+			} else if Levent > 4 && Levent <= 6 {
+				l_event = "7"
+			} else if Levent > 6 && Levent <= 8 {
+				l_event = "8"
+			}
+		}
 
 	}
 	_, bv := TokenParse_errorChecking(l_token)
@@ -1172,7 +1181,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						}
 						return
 					}
-					
+
 					//tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
 					//logger.Println("Status Set")
 					LampController.SCUID, err = strconv.ParseUint(scu_id_db_s, 10, 64)
@@ -1191,7 +1200,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					//GetSet field is set to set mode
-					
+
 					LampController.LampEvent |= 0x100
 					LampController.PacketType = 0x3000
 					LampController.ConfigArray = nil
@@ -1202,7 +1211,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 					LampController.W = nil
 					LampController.ResponseSend = nil
 					LampControllerChannel <- LampController
-					tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
+					tcpUtils.SetTempStatus(scu_id_db_s, NewStatus)
 					logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
 
 				}
@@ -1278,9 +1287,9 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
 	var NewStatus string
-	if l_brightness == "0"{
+	if l_brightness == "0" {
 		NewStatus = "0"
-	}else{
+	} else {
 		NewStatus = "1"
 	}
 	//l_data := NBLampStr.Data
@@ -1340,17 +1349,17 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 		return ans
 	}
 	Levent := l_brightness_i
-         if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	if Levent > 0 {
+		if Levent <= 2 {
+			l_event = "5"
+		} else if Levent > 2 && Levent <= 4 {
+			l_event = "6"
+		} else if Levent > 4 && Levent <= 6 {
+			l_event = "7"
+		} else if Levent > 6 && Levent <= 8 {
+			l_event = "8"
+		}
+	}
 	var LampController sguUtils.SguUtilsLampControllerStruct
 
 	/*	logger.Println(r.URL)
@@ -1433,7 +1442,7 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 						time.Sleep(du)
 						logger.Println("sent")
 						LampControllerChannel <- LampController
-						tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
+						tcpUtils.SetTempStatus(scu_id_db_s, NewStatus)
 						logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
 
 					}
@@ -1897,6 +1906,7 @@ func IsSGUInDb(p_sgu string) bool {
 	}
 	return l_resp
 }
+
 func IsSCUInDb(p_scu string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -4153,13 +4163,13 @@ func StreetLampInfo(SGUId string) map[string]StreetLampDetails {
 		temp.Location_lng = ln
 		temp.Location_name = l
 		tempStatus := tcpUtils.GetTempStatus(scu)
-                if tempStatus == "0"{
-                        temp.Status = "OFF"
-                }else if  tempStatus == "1"{
-                        temp.Status = "ON"
-                }else{
-                        temp.Status = "UNKNOWN"
-                }
+		if tempStatus == "0" {
+			temp.Status = "OFF"
+		} else if tempStatus == "1" {
+			temp.Status = "ON"
+		} else {
+			temp.Status = "UNKNOWN"
+		}
 
 		/*switch st {
 
