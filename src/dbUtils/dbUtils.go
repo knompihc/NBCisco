@@ -413,8 +413,8 @@ func CreatesupportdefinitionTable(DbUtilsStructPtr *DbUtilsStruct) {
 	DbUtilsStructPtr.CreateDBTable(qStatement)
 }
 
-func (DbUtilsStructPtr *DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
-	logger = logg
+//Get database access information as per os and location(remote/local)
+func getDBInfo() string {
 	var dbinfo string
 
 	if runtime.GOOS == "windows" {
@@ -442,6 +442,12 @@ func (DbUtilsStructPtr *DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
 		//use line below for Heroku
 		//DbUtilsStructPtr.Db , DbUtilsStructPtr.Err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	}
+	return dbinfo
+}
+
+func (DbUtilsStructPtr *DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
+	logger = logg
+	var dbinfo = getDBInfo()
 
 	DbUtilsStructPtr.Db, DbUtilsStructPtr.Err = sql.Open("mysql", dbinfo)
 
