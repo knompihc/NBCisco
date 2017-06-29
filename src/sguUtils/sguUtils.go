@@ -288,16 +288,8 @@ func SendResponseToUIImmediate(w http.ResponseWriter, status int, ResponseSendCh
 }
 
 func (SguUtilsStructPtr *SguUtilsStruct) UpdateSGUscuTimestamps() {
-	var LampController SguUtilsLampControllerStruct
-
-	LampController.SGUID = SguUtilsStructPtr.SGUID
-	LampController.PacketType = 0x5000
-	LampController.ConfigArray = nil
-	LampController.ConfigArrayLength = 0
-	LampController.LampEvent = 0
-	LampController.W = nil
-	LampController.ResponseSend = nil
-	LampController.SCUID = SguUtilsStructPtr.SguTcpUtilsStruct.SGUZigbeeID
+	LampController := SguUtilsLampControllerStruct{PacketType: 0x5000, SGUID: SguUtilsStructPtr.SGUID,
+		SCUID: SguUtilsStructPtr.SguTcpUtilsStruct.SGUZigbeeID}
 
 	MasterLampControllerChan <- LampController
 
@@ -309,18 +301,7 @@ func (SguUtilsStructPtr *SguUtilsStruct) UpdateSGUscuTimestamps() {
 }
 
 func (SguUtilsStructPtr *SguUtilsStruct) UpdateSGUFirmwareStatus() {
-	var LampController SguUtilsLampControllerStruct
-
-	LampController.SGUID = SguUtilsStructPtr.SGUID
-	LampController.PacketType = 0x1000
-	LampController.ConfigArray = nil
-	LampController.ConfigArrayLength = 0
-	LampController.LampEvent = 0
-	LampController.W = nil
-	LampController.ResponseSend = nil
-	LampController.SCUID = 0
-
-	MasterLampControllerChan <- LampController
+	MasterLampControllerChan <- SguUtilsLampControllerStruct{PacketType: 0x1000, SGUID: SguUtilsStructPtr.SGUID}
 }
 
 func (SguUtilsStructPtr *SguUtilsStruct) UpdateDBWithLampStatus() {
@@ -408,15 +389,8 @@ func (SguUtilsStructPtr *SguUtilsStruct) SGUGetLampStatus() {
 	}
 	SguUtilsStructPtr.sguTickerCount = 0
 
-	var tempLampControl SguUtilsLampControllerStruct
+	tempLampControl := SguUtilsLampControllerStruct{PacketType: 0x3000, SGUID: SguUtilsStructPtr.SGUID}
 
-	tempLampControl.SGUID = SguUtilsStructPtr.SGUID
-	tempLampControl.PacketType = 0x3000
-	tempLampControl.W = nil
-	tempLampControl.ConfigArray = nil
-	tempLampControl.ConfigArrayLength = 0
-	//get/set field is set to get
-	tempLampControl.LampEvent = 0
 	logger.Println("FOR LAMP STATUS SGUID====", SguUtilsStructPtr.SGUID, " index=", sguIndex)
 	//logger.Println("SCIDSGUARRAY=",SCUIDArray)
 	for k := 0; k < NumOfSCUsInDb[sguIndex]; k++ {
@@ -1217,30 +1191,10 @@ func HandleLampEvents(lampControllerChan chan SguUtilsLampControllerStruct) chan
 }
 
 func Sgu_firmware_update(sguid uint64) {
-	var LampController SguUtilsLampControllerStruct
-
-	LampController.SGUID = sguid
-	LampController.SCUID = 0
-	LampController.PacketType = 0x1024
-	LampController.ConfigArray = nil
-	LampController.ConfigArrayLength = 0
-	LampController.LampEvent = 0x01
-	LampController.W = nil
-	LampController.ResponseSend = nil
-
-	MasterLampControllerChan <- LampController
+	MasterLampControllerChan <- SguUtilsLampControllerStruct{PacketType: 0x1024, SGUID: sguid, LampEvent: 0x01}
 }
 
 func Scu_firmware_update(scuid uint64, sguid uint64) {
-	var LampController SguUtilsLampControllerStruct
-
-	LampController.SGUID = sguid
-	LampController.SCUID = scuid
-	LampController.PacketType = 0xC000
-	LampController.ConfigArray = nil
-	LampController.ConfigArrayLength = 0
-	LampController.LampEvent = 0x01
-	LampController.W = nil
-	LampController.ResponseSend = nil
-	MasterLampControllerChan <- LampController
+	MasterLampControllerChan <- SguUtilsLampControllerStruct{PacketType: 0xC000, SGUID: sguid,
+		SCUID: scuid, LampEvent: 0x01}
 }
