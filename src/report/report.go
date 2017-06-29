@@ -31,19 +31,13 @@ func InitSendreport(dbcon dbUtils.DbUtilsStruct) {
 
 func forcsv(fname string, ts string) string {
 	db := dbController.Db
-	/*path,_:=os.Getwd()
-	logger.Println("path=",path)
-	var st []string
-	st=strings.Split(path,"\\")
-	tpath:=""
-	for i,_:=range st{
-		tpath=st[i]+"/"
-		break
-	}
-	logger.Println(tpath)*/
 	logger.Println("for ti>=", ts)
 	stmt1, err := db.Query("Select sgu_id,timestamp,Vr,Vy,Vb,Ir,Iy,Ib,Pf,KW,KVA,KWH,KVAH,rKVAH,Run_Hours,freq from parameters where timestamp>='" + ts + "'")
+	if err != nil {
+		logger.Println(err)
+	}
 	defer stmt1.Close()
+
 	var file *xlsx.File
 	var sheet *xlsx.Sheet
 	var row *xlsx.Row
@@ -186,7 +180,6 @@ func foremail(currentTimeForEmailFile, reportuserid string) {
 	smtpUser := "havellstreetcomm@chipmonk.in"
 
 	emailConf := &EmailConfig{smtpUser, smtpPass, smtpHost, smtpPort}
-
 	emailauth := smtp.PlainAuth("", emailConf.Username, emailConf.Password, emailConf.Host)
 
 	sender := "havellstreetcomm@chipmonk.in"
@@ -235,10 +228,12 @@ func reportconfig() {
 	db := dbController.Db
 
 	reportstmt, err := db.Query("SELECT id,reportfrequency,reportdef_userid,next,type FROM reportcofig")
-	defer reportstmt.Close()
+
 	if err != nil {
-		logger.Println("Failed data retrive")
+		logger.Println("Failed data retrieve")
 	}
+	defer reportstmt.Close()
+
 	t := time.Now()
 	fnames := make(map[string]string)
 	hr := make(map[string]string)
@@ -311,14 +306,6 @@ func reportconfig() {
 
 func ReportGenThread() {
 
-	/*for range ticker.C {
-
-		logger.Println("Entering Socket ticker")
-
-	     reportconfig()
-		logger.Println("Leaving Socket ticker")
-
-	}*/
 	gocron.Every(1).Day().At("20:00").Do(reportconfig)
 	_, time := gocron.NextRun()
 	logger.Println("CRON JOB SET AT=", time)
