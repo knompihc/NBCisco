@@ -29,9 +29,9 @@ import (
 	"strconv"
 	"strings"
 	//	"tcpServer"
+	"sync"
 	"tcpUtils"
 	"time"
-	"sync"
 	//	"github.com/context"
 	"github.com/jwt-go-master"
 	//	"github.com/scorredoira/email"
@@ -96,6 +96,26 @@ type NBData struct {
 	Priority      string                                  `json:"priority"`
 	Zone          string                                  `json:"zone_name"`
 	//Group         string                                  `json:"group_id"`
+	Energy_Data map[string]EnergyDataStr `json:"energy_data"`
+}
+type EnergyDataStr struct {
+	Id        string `json:"id"`
+	Sgu_id    string `json:"sgu_id"`
+	Timestamp string `json:"timestamp"`
+	Vr        string `json:"vr"`
+	Vy        string `json:"vy"`
+	Vb        string `json:"vb"`
+	Ir        string `json:"ir"`
+	Iy        string `json:"iy"`
+	Ib        string `json:"ib"`
+	Pf        string `json:"pf"`
+	KW        string `json:"kw"`
+	KVA       string `json:"kva"`
+	KWH       string `json:"kwh"`
+	KVAH      string `json:"kvah"`
+	RKVAH     string `json:"rkvah"`
+	Run_Hours string `json:"run_hours"`
+	Freq      string `json:"freq"`
 }
 type NBAllLampControlStruct struct {
 	Token  string `json:"token"`
@@ -117,10 +137,12 @@ type GatewayResponse struct {
 }
 
 type StreetLampDetails struct {
-	Location_name string `json:"location_name"`
-	Location_lat  string `json:"location_lat"`
-	Location_lng  string `json:"location_lng"`
-	Status        string `json:"status"`
+	Location_name string   `json:"location_name"`
+	Location_lat  string   `json:"location_lat"`
+	Location_lng  string   `json:"location_lng"`
+	Status        string   `json:"status"`
+	Schedule      []string `json:"schedule_id"`
+	Op_Mode       string   `json:op_mode`
 }
 
 type ScheduleStr struct {
@@ -142,9 +164,9 @@ type SCUVIewStr struct {
 	Priority   string `json:"priority"`
 }
 type ScheduleResp struct {
-	Response_status string                            `json:"response_status"`
-	Data            map[string]map[string]ScheduleStr `json:"data"`
-	End             string                            `json:"end"`
+	//Response_status string                            `json:"response_status"`
+	Data map[string]map[string]ScheduleStr `json:"data"`
+	//End             string                            `json:"end"`
 }
 
 type SCUViewResp struct {
@@ -163,6 +185,33 @@ type LampPowerStatus struct {
 	Data            map[string]string `json:"data"`
 	End             string            `json:"end"`
 	//Status 			string				`json:"current_status"`
+}
+type ZoneDiscv struct {
+	Zones map[string]map[string]SGUDetails `json:"zones"`
+}
+type GroupDisc struct {
+	Groups map[string]map[string]StreetLampDetails `json:"groups"`
+}
+type SGUDetails struct {
+	//	SGUId  string `json:"gateway_id"`
+	SGUlOc string `json:"location"`
+}
+type GatewayStr struct {
+	Gateways map[string]map[string]StreetLampDetails `json:"gateway"`
+}
+type DiscoveryStr struct {
+	Zone     ZoneStr      `json:"zone"`
+	Group    GroupDisc    `json"group"`
+	Gateway  GatewayStr   `json:"gateway"`
+	Schedule ScheduleResp `json:"schedules"`
+}
+type ZoneStr struct {
+	Zones map[string]map[string]SGUDetails `json:"zone"`
+}
+type DiscvResp struct {
+	Response_status string       `json:"response_status"`
+	Data            DiscoveryStr `json:"data"`
+	End             string       `json:"end"`
 }
 
 //NB Street Lamp Controll
@@ -232,11 +281,11 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data 
+	//l_data := NBLampStr.Data
 	var NewStatus string
 	if l_brightness != "0" {
 		NewStatus = "1"
-	}else{
+	} else {
 		NewStatus = "0"
 	}
 	l_sgu := NBLampStr.Fdn.Gateway
@@ -319,17 +368,17 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Levent := l_brightness_i
-         if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	if Levent > 0 {
+		if Levent <= 2 {
+			l_event = "5"
+		} else if Levent > 2 && Levent <= 4 {
+			l_event = "6"
+		} else if Levent > 4 && Levent <= 6 {
+			l_event = "7"
+		} else if Levent > 6 && Levent <= 8 {
+			l_event = "8"
+		}
+	}
 	_, bv := TokenParse_errorChecking(l_token)
 	if bv {
 		var LampController sguUtils.SguUtilsLampControllerStruct
@@ -412,8 +461,8 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		//LampController.ResponseSend  = make(chan bool)
 		LampController.W = nil
 		LampController.ResponseSend = nil
-		LampControllerChannel <- LampController 
-		tcpUtils.SetTempStatus(l_scu,NewStatus)
+		LampControllerChannel <- LampController
+		tcpUtils.SetTempStatus(l_scu, NewStatus)
 		logger.Println("Lamp event sent to channel")
 		du, _ := time.ParseDuration(per_scu_delay + "s")
 		time.Sleep(du)
@@ -707,7 +756,7 @@ func TokenParse_errorChecking(myToken string) (string, bool) {
 //	Message
 //	Data map[string]map[string]map[string]string `json:"data"`
 //}
-
+/*
 func Discovery(w http.ResponseWriter, r *http.Request) {
 	logger.Println("Discovery()")
 	var ans NBResponseStruct
@@ -738,7 +787,7 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 	logger.Println("l_opr", l_opr)
 	l_system := NBLampStr.Fdn.System
 	logger.Println("l_system", l_system)*/
-	l_opr := NBLampStr.Opr
+/*l_opr := NBLampStr.Opr
 	if l_opr == "" || l_opr != "discovery" {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Invalid Operation"
@@ -908,7 +957,7 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-}
+}*/
 
 func chkErr(err error, r *http.ResponseWriter) {
 	if err != nil {
@@ -974,13 +1023,13 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data 
+	//l_data := NBLampStr.Data
 	var NewStatus string
 	if l_brightness != "0" {
 		NewStatus = "1"
-	}else{
+	} else {
 		NewStatus = "0"
-	}	
+	}
 
 	l_sgu := NBLampStr.Fdn.Gateway
 	l_scu := NBLampStr.Fdn.Street_lamp
@@ -1072,19 +1121,19 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-	}else {
-	Levent := l_brightness_i
-	 if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	} else {
+		Levent := l_brightness_i
+		if Levent > 0 {
+			if Levent <= 2 {
+				l_event = "5"
+			} else if Levent > 2 && Levent <= 4 {
+				l_event = "6"
+			} else if Levent > 4 && Levent <= 6 {
+				l_event = "7"
+			} else if Levent > 6 && Levent <= 8 {
+				l_event = "8"
+			}
+		}
 
 	}
 	_, bv := TokenParse_errorChecking(l_token)
@@ -1172,7 +1221,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						}
 						return
 					}
-					
+
 					//tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
 					//logger.Println("Status Set")
 					LampController.SCUID, err = strconv.ParseUint(scu_id_db_s, 10, 64)
@@ -1191,7 +1240,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					//GetSet field is set to set mode
-					
+
 					LampController.LampEvent |= 0x100
 					LampController.PacketType = 0x3000
 					LampController.ConfigArray = nil
@@ -1202,7 +1251,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 					LampController.W = nil
 					LampController.ResponseSend = nil
 					LampControllerChannel <- LampController
-					tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
+					tcpUtils.SetTempStatus(scu_id_db_s, NewStatus)
 					logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
 
 				}
@@ -1278,9 +1327,9 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
 	var NewStatus string
-	if l_brightness == "0"{
+	if l_brightness == "0" {
 		NewStatus = "0"
-	}else{
+	} else {
 		NewStatus = "1"
 	}
 	//l_data := NBLampStr.Data
@@ -1340,17 +1389,17 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 		return ans
 	}
 	Levent := l_brightness_i
-         if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	if Levent > 0 {
+		if Levent <= 2 {
+			l_event = "5"
+		} else if Levent > 2 && Levent <= 4 {
+			l_event = "6"
+		} else if Levent > 4 && Levent <= 6 {
+			l_event = "7"
+		} else if Levent > 6 && Levent <= 8 {
+			l_event = "8"
+		}
+	}
 	var LampController sguUtils.SguUtilsLampControllerStruct
 
 	/*	logger.Println(r.URL)
@@ -1433,7 +1482,7 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 						time.Sleep(du)
 						logger.Println("sent")
 						LampControllerChannel <- LampController
-						tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
+						tcpUtils.SetTempStatus(scu_id_db_s, NewStatus)
 						logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
 
 					}
@@ -3628,6 +3677,7 @@ func SCUView(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*
 func GetSchedule(w http.ResponseWriter, r *http.Request) {
 	logger.Println("GetSchedule()")
 	var ans ScheduleResp
@@ -3711,7 +3761,7 @@ func GetSchedule(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("401 - Invalid token"))
 	}
 	return
-}
+}*/
 
 func CreateZone(w http.ResponseWriter, r *http.Request) {
 	logger.Println("CreateZone()")
@@ -4153,13 +4203,13 @@ func StreetLampInfo(SGUId string) map[string]StreetLampDetails {
 		temp.Location_lng = ln
 		temp.Location_name = l
 		tempStatus := tcpUtils.GetTempStatus(scu)
-                if tempStatus == "0"{
-                        temp.Status = "OFF"
-                }else if  tempStatus == "1"{
-                        temp.Status = "ON"
-                }else{
-                        temp.Status = "UNKNOWN"
-                }
+		if tempStatus == "0" {
+			temp.Status = "OFF"
+		} else if tempStatus == "1" {
+			temp.Status = "ON"
+		} else {
+			temp.Status = "UNKNOWN"
+		}
 
 		/*switch st {
 
@@ -4248,4 +4298,525 @@ func DeleteLamp(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	return
+}
+
+//New Discovery should comment old one
+func Discovery(w http.ResponseWriter, r *http.Request) {
+
+	logger.Println("Discovery()")
+
+	parse_err := r.ParseForm()
+	if parse_err != nil {
+		logger.Println(parse_err)
+	}
+
+	var NBLampStr NBAllLampControlStruct
+	if len(r.FormValue("token")) == 0 {
+		decoder := json.NewDecoder(r.Body)
+		logger.Println(decoder)
+		err := decoder.Decode(&NBLampStr)
+		if err != nil {
+			logger.Println(err)
+			return
+		}
+	}
+	l_token := NBLampStr.Token
+	fmt.Println("l_token", l_token)
+
+	_, bv := TokenParse_errorChecking(l_token)
+	if bv {
+		var ans DiscvResp
+		l_opr := NBLampStr.Opr
+		if l_opr == "discovery" {
+
+			l_obj := NBLampStr.Object
+			if l_obj != "" {
+
+				Gateways, flag := GateWayDiscv()
+				if !flag {
+					ans.Response_status = "failed to fetch gateway data"
+				} else {
+					ans.Data.Gateway = Gateways
+				}
+				schedules, flag := GetSchedule()
+				if !flag {
+					ans.Response_status = "failed to fetch Schedules"
+				} else {
+					ans.Data.Schedule = schedules
+				}
+				Zones, flag := ZoneDiscvery()
+				logger.Println("zone resposne status: ", flag)
+				if flag {
+					ans.Data.Zone = Zones
+					logger.Println("Zones: ", ans.Data.Zone)
+				}
+				Groups, flag := GroupDiscv()
+				if flag {
+					ans.Data.Group = Groups
+				}
+				logger.Println("response is: ", ans)
+				a, err := json.Marshal(ans)
+				if err != nil {
+					logger.Println("Error in Marshalling: ", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("500- Internal server error"))
+					return
+				} else {
+					w.Write(a)
+				}
+			} else {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("401 - Invalid token"))
+			}
+			return
+		}
+	}
+}
+
+func GateWayDiscv() (GatewayStr, bool) {
+	logger.Println("GateWayDiscv()")
+	var gateway GatewayStr
+
+	var NBsys map[string]map[string]map[string]string
+	NBsys = make(map[string]map[string]map[string]string)
+	NBsys["gateway1"] = make(map[string]map[string]string)
+	NBsys["gateway1"]["scu1"] = make(map[string]string)
+	db := dbController.Db
+	dbController.DbSemaphore.Lock()
+	defer dbController.DbSemaphore.Unlock()
+	//temp := []GatewayStr{}
+	temp := make(map[string]map[string]StreetLampDetails)
+
+	//rows, err := db.Query("Select sgu.sgu_id,sgu.location_name,scu.scu_id,scu.location_name,scu.location_lat,scu.location_lng,scu_status.status from zone_sgu inner join zone on zone.id=zone_sgu.zid inner join sgu on sgu.sgu_id=zone_sgu.sguid inner join scu on scu.sgu_id=zone_sgu.sguid inner join scu_status on scu_status.scu_id=scu.scu_id")
+	/*rows, err := db.Query("Select sgu.sgu_id,sgu.location_name,scu.scu_id,scu.location_name,scu.location_lat,scu.location_lng,scu_status.status from scu inner join sgu on scu.sgu_id=sgu.sgu_id inner join scu_status on scu_status.scu_id=scu.scu_id")
+	  //rows, err := db.Query("Select zone_sgu.zid,zone.name,sgu.sgu_id,sgu.location_name,scu.scu_id,scu.location_name,scu.location_lat,scu.location_lng,scu_status.status from zone_sgu inner join zone on zone.id=zone_sgu.zid inner join sgu on sgu.sgu_id=zone_sgu.sguid inner join scu on scu.sgu_id=zone_sgu.sguid inner join scu_status on scu_status.scu_id=scu.scu_id")
+	  defer rows.Close()
+	  //	chkErr(err, &w)
+	  if err != nil {
+	  	logger.Println("error while reading from DB:", err)
+	  	return temp, false
+	  }
+	  //scanninng data from the query result
+	  var lampDetails StreetLampDetails
+	  j := 0
+	  for rows.Next() {
+
+	  	//var zid, zname, sguid, sguname, scuid, scuname, lat, lng string
+	  	var sguid, sguname, scuid, scuname, lat, lng, sched_id string
+	  	var st uint64
+	  	st = 10
+	  	//rows.Scan(&zid, &zname, &sguid, &sguname, &scuid, &scuname, &lat, &lng, &st)
+	  	rows.Scan(&sguid, &sguname, &scuid, &scuname, &lat, &lng, &st)
+	  	sta := st & (0x0FF)
+	  	logger.Println("STATUS before=", sta)
+	  	sta = sta & 3
+	  	logger.Println("STATUS=", sta)
+	  	lampDetails.Location_lat = lat
+	  	lampDetails.Location_lng = lng
+	  	lampDetails.Location_name = scuname
+	  	if sta == 0 {
+	  		state := "ON"
+	  	} else if sta == 1 {
+	  		state := "OFF"
+	  	} else {
+	  		state := "UNKNOWN"
+	  	}
+	  	lampDetails.Status = state
+	  	var schedule []string
+	  	//To get schedule Id
+	  	statement := "SELECT ScheduleID FROM scuconfigure where scuid='" + scuid + "'"
+	  	//logger.Println(statement)
+	  	rows1, err1 := dbController.Db.Query(statement)
+	  	defer rows1.Close()
+	  	if err1 != nil {
+	  		logger.Println("Error quering database  for Schedule Id for Lamp:", scuid)
+	  		logger.Println(err)
+
+	  	} else {
+	  		i := 0
+	  		for rows.Next() {
+	  			rows.Scan(&sched_id)
+	  			schedule[i] = sched_id
+	  			i++
+	  		}
+	  		lampDetails.Schedule = schedule
+	  		temp1[scuid] = lampDetails
+	  		gateway.SCUList = temp1
+	  		gateway.SGUid = sguid
+	  		gateway.SGUname = sguname
+	  		temp[j] = gateway
+	  	}
+	  }
+	  return temp, true*/
+	rows, err := db.Query("select sgu_id from sgu")
+	defer rows.Close()
+	if err != nil {
+
+		logger.Println("error in fetching Gateways from DB: ", err)
+		return gateway, false
+	} else {
+		var sgu string
+		for rows.Next() {
+			rows.Scan(&sgu)
+
+			rows1, err1 := db.Query("select scu.scu_id,scu.location_name,scu.location_lat,scu.location_lng,scu_status.status from scu inner join scu_status on scu.scu_id = scu_status.scu_id where scu.sgu_id =?", sgu)
+			if err1 != nil {
+
+				logger.Println("Error in fetching SCUs: ", err1)
+			} else {
+				var scuId, loc, lat, lng, status string
+				temp1 := make(map[string]StreetLampDetails)
+				for rows1.Next() {
+					var lampDet StreetLampDetails
+					rows1.Scan(&scuId, &loc, &lat, &lng, &status)
+					lampDet.Location_name = loc
+					lampDet.Location_lat = lat
+					lampDet.Location_lng = lng
+					state := ""
+					if status == "0" {
+						state = "ON"
+					} else if status == "1" {
+						state = "OFF"
+					} else {
+						state = "UNKNOWN"
+					}
+					lampDet.Status = state
+					var flag bool
+					lampDet.Schedule, flag = GetScheduleForScu(scuId)
+					if !flag {
+						logger.Println("Error While getting Schedules for Street Lamp")
+						return gateway, false
+					}
+					temp1[scuId] = lampDet
+				}
+				temp[sgu] = temp1
+			}
+		}
+		gateway.Gateways = temp
+	}
+	return gateway, true
+}
+func GetSchedule() (ScheduleResp, bool) {
+
+	temp := make(map[string]ScheduleStr)
+	var temp1 ScheduleStr
+	var id, pwm, sst, set string
+	var ans ScheduleResp
+
+	logger.Println("fetching schedules from DB")
+	dbController.DbSemaphore.Lock()
+	defer dbController.DbSemaphore.Unlock()
+	db := dbController.Db
+	rows, err := db.Query("SELECT idschedule, ScheduleStartTime, ScheduleEndTime, pwm from schedule")
+	defer rows.Close()
+	if err != nil {
+		logger.Println("Error while reading from DB: ", err)
+		//ans.Response_status = "fail"
+		return ans, false
+	} else {
+
+		//ans.Response_status = "Success"
+		for rows.Next() {
+
+			rows.Scan(&id, &sst, &set, &pwm)
+
+			sstSlice := strings.Split(sst, " ")
+			ssd := sstSlice[0]
+			sst := sstSlice[1]
+			setSlice := strings.Split(set, " ")
+			sed := setSlice[0]
+			set := setSlice[1]
+			temp1.SSDate = ssd
+			temp1.SEDate = sed
+			temp1.SSTime = sst
+			temp1.SETime = set
+			temp1.Brightness = pwm
+			temp[id] = temp1
+		}
+
+	}
+	tempData := make(map[string]map[string]ScheduleStr)
+	tempData["schedules"] = temp
+	ans.Data = tempData
+
+	return ans, true
+}
+func ZoneDiscvery() (ZoneStr, bool) {
+
+	logger.Println("Inside ZoneDiscv()")
+	//Discovery_map map[string]map[string]map[string]string
+	var zid string
+
+	var sid, sloc string
+	temp1 := ZoneStr{}
+	temp2 := make(map[string]map[string]SGUDetails)
+
+	dbController.DbSemaphore.Lock()
+	defer dbController.DbSemaphore.Unlock()
+	db := dbController.Db
+	rows, err := db.Query("select id from zone")
+	defer rows.Close()
+	if err != nil {
+		logger.Println("error fetching zones: ", err)
+		return temp1, false
+	} else {
+		for rows.Next() {
+			rows.Scan(&zid)
+			rows1, err1 := db.Query("select sgu.sgu_id,sgu.location_name from sgu inner join zone_sgu on sgu.sgu_id = zone_sgu.sguid where zone_sgu.zid =?", zid)
+			defer rows1.Close()
+			if err1 != nil {
+				logger.Println("error fetching sgu ids for zone id: ", err1)
+			} else {
+				temp := make(map[string]SGUDetails)
+				for rows1.Next() {
+					var sdetail SGUDetails
+
+					rows1.Scan(&sid, &sloc)
+					//sdetail.SGUId = sid
+					sdetail.SGUlOc = sloc
+					temp[sid] = sdetail
+				}
+				temp2[zid] = temp
+			}
+		}
+		temp1.Zones = temp2
+		logger.Println("Zone data:", temp1.Zones)
+	}
+	return temp1, true
+}
+func GroupDiscv() (GroupDisc, bool) {
+
+	logger.Println("Inside GroupDiscv()")
+	temp2 := make(map[string]map[string]StreetLampDetails)
+
+	var tempgroup GroupDisc
+	dbController.DbSemaphore.Lock()
+	defer dbController.DbSemaphore.Unlock()
+	db := dbController.Db
+	var gid string
+	var sid, sloc, slat, slng string
+	rows, err := db.Query("select id from groupscu")
+	defer rows.Close()
+	if err != nil {
+		logger.Println("Error while fetching group ids form DB: ", err)
+		return tempgroup, false
+	} else {
+		i := 0
+		for rows.Next() {
+			rows.Scan(&gid)
+			i++
+			rows1, err1 := db.Query("select scu.scu_id,scu.location_name,scu.location_lat,scu.location_lng from scu inner join group_scu_rel on scu.scu_id = group_scu_rel.scuid where group_scu_rel.gid =?", gid)
+			defer rows1.Close()
+			if err1 != nil {
+				logger.Println("error fetching scu Details for Group id: ", err1)
+				return tempgroup, false
+
+			} else {
+				temp := make(map[string]StreetLampDetails)
+				for rows1.Next() {
+					var scuDetails StreetLampDetails
+
+					rows1.Scan(&sid, &sloc, &slat, &slng)
+					//sdetail.SGUId = sid
+					scuDetails.Location_lat = slat
+					scuDetails.Location_lng = slng
+					scuDetails.Location_name = sloc
+
+					l_status := tcpUtils.GetTempStatus(sid)
+					if l_status == "0" {
+						scuDetails.Status = "OFF"
+					} else if l_status == "1" {
+						scuDetails.Status = "ON"
+					} else {
+						scuDetails.Status = "UNKNOWN"
+					}
+
+					scuDetails.Schedule, _ = GetScheduleForScu(sid)
+
+					temp[sid] = scuDetails
+				}
+				temp2[gid] = temp
+			}
+			tempgroup.Groups = temp2
+			logger.Println("Group data:", tempgroup.Groups)
+		}
+	}
+	return tempgroup, true
+
+}
+func GetScheduleForScu(p_scuId string) (schedIDs []string, flag bool) {
+	var sched_id string
+	schedIDs = make([]string, 1)
+	if dbController.DbConnected {
+		fmt.Println("p_scu", p_scuId)
+		statement := "SELECT ScheduleID FROM scuconfigure where scuid='" + p_scuId + "'"
+		//logger.Println(statement)
+		rows1, err1 := dbController.Db.Query(statement)
+		defer rows1.Close()
+		if err1 != nil {
+			logger.Println("Error quering database  for Schedule Id for Lamp:", p_scuId)
+			logger.Println(err)
+			return schedIDs, false
+
+		} else {
+			i := 0
+			for rows1.Next() {
+				rows1.Scan(&sched_id)
+				schedIDs[i] = sched_id
+				i++
+			}
+			return schedIDs, true
+		}
+	}
+	return schedIDs, true
+}
+func GetGatewayEnergyData(w http.ResponseWriter, r *http.Request) {
+	logger.Println("GetGatewayEnergyData()")
+	var ans NBResponseStruct
+	parse_err := r.ParseForm()
+	if parse_err != nil {
+		logger.Println(parse_err)
+	}
+	var NBLampStr NBAllLampControlStruct
+	if len(r.FormValue("token")) == 0 {
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&NBLampStr)
+		if err != nil {
+			logger.Println(err)
+		}
+	} else {
+		NBLampStr.Token = r.FormValue("token")
+		NBLampStr.Opr = r.FormValue("opr")
+	}
+	l_token := NBLampStr.Token
+	l_opr := NBLampStr.Opr
+	if l_opr != "get_energy_data" {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Operation"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
+	_, bv := TokenParse_errorChecking(l_token)
+	if bv {
+		en_map := make(map[string]EnergyDataStr)
+		l_gateway_ids_array := NBLampStr.Data.Ids
+		if len(l_gateway_ids_array) == 0 {
+			ans.Response_status = "fail"
+			ans.Data.Message = "Gateway Not Specified"
+			a, err := json.Marshal(ans)
+			if err != nil {
+				logger.Println("Error in json.Marshal")
+				logger.Println(err)
+			} else {
+				w.Write(a)
+			}
+			return
+		}
+		gateway_id := ""
+		for i := 0; i < len(l_gateway_ids_array); i++ {
+			if !validateSGU(l_gateway_ids_array[i]) {
+				ans.Response_status = "fail"
+				ans.Data.Message = "Invalid SGU"
+				a, err := json.Marshal(ans)
+				if err != nil {
+					logger.Println("Error in json.Marshal")
+					logger.Println(err)
+				} else {
+					w.Write(a)
+				}
+				return
+			}
+			if !IsSGUInDb(l_gateway_ids_array[i]) {
+				ans.Response_status = "fail"
+				ans.Data.Message = "Gateway Not Found"
+				a, err := json.Marshal(ans)
+				if err != nil {
+					logger.Println("Error in json.Marshal")
+					logger.Println(err)
+				} else {
+					w.Write(a)
+				}
+				return
+
+			}
+			gateway_id = l_gateway_ids_array[i]
+		}
+		dbController.DbSemaphore.Lock()
+		defer dbController.DbSemaphore.Unlock()
+		statement := "SELECT id,sgu_id,timestamp,Vr,Vy,Vb,Ir,Iy,Ib,Pf,KW,KVA,KWH,KVAH,rKVAH,Run_Hours,freq FROM parameters WHERE timestamp BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE() AND sgu_id='" + gateway_id + "';"
+		logger.Println(statement)
+		rows1, err1 := dbController.Db.Query(statement)
+		defer rows1.Close()
+		if err1 != nil {
+			logger.Println("Error quering database  for Energy Data  for Gateway:", gateway_id)
+			logger.Println(err)
+			ans.Response_status = "fail"
+			ans.Data.Message = "Error quering database  for Energy Data  for Gateway"
+			a, err := json.Marshal(ans)
+			if err != nil {
+				logger.Println("Error in json.Marshal")
+				logger.Println(err)
+			} else {
+				w.Write(a)
+			}
+			return
+
+		} else {
+			var l_id, l_sgu_id, l_timestamp, l_Vr, l_Vy, l_Vb, l_Ir, l_Iy, l_Ib, l_Pf, l_KW, l_KVA, l_KWH, l_KVAH, l_rKVAH, l_Run_Hours, l_freq string
+			for rows1.Next() {
+				var en_data EnergyDataStr
+				rows1.Scan(&l_id, &l_sgu_id, &l_timestamp, &l_Vr, &l_Vy, &l_Vb, &l_Ir, &l_Iy, &l_Ib, &l_Pf, &l_KW, &l_KVA, &l_KWH, &l_KVAH, &l_rKVAH, &l_Run_Hours, &l_freq)
+				en_data.Id = l_id
+				en_data.Freq = l_freq
+				en_data.Ib = l_Ib
+				en_data.Ir = l_Ir
+				en_data.Iy = l_Iy
+				en_data.KVA = l_KVA
+				en_data.KVAH = l_KVAH
+				en_data.KW = l_KW
+				en_data.KWH = l_KWH
+				en_data.Pf = l_Pf
+				en_data.RKVAH = l_rKVAH
+				en_data.Run_Hours = l_Run_Hours
+				en_data.Sgu_id = l_sgu_id
+				en_data.Timestamp = l_timestamp
+				en_data.Vb = l_Vb
+				en_data.Vr = l_Vr
+				en_data.Vy = l_Vy
+				en_map[l_id] = en_data
+			}
+
+		}
+
+		//io.WriteString(w, "Saved Successfully!!")
+		ans.Response_status = "Success"
+		ans.Data.Energy_Data = en_map
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+
+	} else {
+		ans.Response_status = "fail"
+		ans.Data.Message = "Invalid Token"
+		a, err := json.Marshal(ans)
+		if err != nil {
+			logger.Println("Error in json.Marshal")
+			logger.Println(err)
+		} else {
+			w.Write(a)
+		}
+		return
+	}
+
 }
