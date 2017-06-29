@@ -34,9 +34,7 @@ var status = struct {
 const (
 	StartingDelimeter    = 0x7E
 	MaxInOutBufferLength = 1024 * 8
-	//MaxInOutBufferLength 	= 65536
-	//MaxInOutBufferLength 	= 1000000
-	FixedPacketLength = 29
+	FixedPacketLength    = 29
 )
 
 type TcpUtilsStruct struct {
@@ -143,6 +141,7 @@ var (
 	Scu_Curr_minor    map[uint64]byte
 	Scu_RetryFirmware map[uint64]map[int64]int64
 )
+
 var dbController dbUtils.DbUtilsStruct
 var logger *log.Logger
 
@@ -306,7 +305,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) AddByteToInputBuff(newByte byte) {
 */
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) ReadOneByteFromInput() byte {
-
 	if TcpUtilsStructPtr.inputBufferDipstick > 0 {
 		if TcpUtilsStructPtr.inputBufferReadPtr < len(TcpUtilsStructPtr.commandLineBuff) && TcpUtilsStructPtr.inputBufferReadPtr >= 0 {
 			var newByte = TcpUtilsStructPtr.commandLineBuff[TcpUtilsStructPtr.inputBufferReadPtr]
@@ -319,7 +317,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ReadOneByteFromInput() byte {
 			logger.Println("Error reading from input buffer: Incomplete packet")
 			return 0
 		}
-
 	} else {
 		//should be spinning here till thread fills  buffer.
 		//TBD
@@ -345,7 +342,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ReadOneByteFromInput() byte {
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) GetByteFromOutputBuff() byte {
-
 	if TcpUtilsStructPtr.outputBufferDipstick > 0 {
 		if TcpUtilsStructPtr.outputBufferReadPtr < len(TcpUtilsStructPtr.responseLineBuff) && TcpUtilsStructPtr.outputBufferReadPtr >= 0 {
 			var newByte = TcpUtilsStructPtr.responseLineBuff[TcpUtilsStructPtr.outputBufferReadPtr]
@@ -439,7 +435,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ReadNBytesFromInput(BytesToRead int) {
 		TcpUtilsStructPtr.inputBufferReadPtr += BytesToRead
 		TcpUtilsStructPtr.inputBufferReadPtr &= (MaxInOutBufferLength - 1)
 		TcpUtilsStructPtr.inputBufferDipstick -= BytesToRead
-
 	} else {
 		//should be speeeing here till thread fills  buffer.
 		//TBD
@@ -499,13 +494,11 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ReceiveSocketData() {
 	}
 	for ; bytesAvailable > 0; bytesAvailable-- {
 		tByte, err := TcpUtilsStructPtr.reader.ReadByte()
-
 		if err != nil {
 			logger.Println("Error reading from socket")
 			//TcpUtilsStructPtr.ConnectedToSGU = false
 			TcpUtilsStructPtr.CloseTcpClient()
 			return
-
 		} else {
 			TcpUtilsStructPtr.AddByteToInputBuff(tByte)
 		}
@@ -556,7 +549,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendSocketData() {
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) GetSCUIndexFromSCUID(SCUID uint64) int {
-
 	var i int
 	for i = 0; i < TcpUtilsStructPtr.NumOfSCUsInDB; i++ {
 		logger.Println("searching current SCU=", TcpUtilsStructPtr.SCUIDinDBArray[i])
@@ -570,7 +562,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) GetSCUIndexFromSCUID(SCUID uint64) int 
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) PacketTypeToPacketLength(PacketType int) int {
-
 	switch PacketType {
 	case 0x0001:
 		{
@@ -600,57 +591,47 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) PacketTypeToPacketLength(PacketType int
 	case 0xe000:
 		{
 			return FixedPacketLength + 2 + TcpUtilsStructPtr.NumOfSCUs*24
-
 		}
 
 	case 0x0011:
 		{
 			return FixedPacketLength + 1
-
 		}
 	case 0x0022:
 		{
 			return FixedPacketLength + 1
-
 		}
 	case 0x0023:
 		{
 			return FixedPacketLength + 1
-
 		}
 
 	case 0x0024:
 		{
 			return FixedPacketLength + 1
-
 		}
 	case 0x0025:
 		{
 			return FixedPacketLength + 1
-
 		}
 
 	case 0xe001:
 		{
 			return FixedPacketLength + 1
-
 		}
 
 	case 0x1000:
 		{
 			return FixedPacketLength
-
 		}
 
 	case 0x1001:
 		{
 			return FixedPacketLength + 11
-
 		}
 	case 0x2000:
 		{
 			return FixedPacketLength + 8
-
 		}
 	case 0x2001:
 		{
@@ -760,8 +741,8 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) PacketTypeToPacketLength(PacketType int
 	return 0
 }
 
-func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int, SCUID uint64, StatusByte int, expression []byte, expressionLength int) {
-
+func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int, SCUID uint64, StatusByte int,
+	expression []byte, expressionLength int) {
 	if OutputPacketType == 0x1024 && StatusByte == 0x01 {
 		if TcpUtilsStructPtr.Curr_major == Sgu_firmware_major && TcpUtilsStructPtr.Curr_minor == Sgu_firmware_minor {
 			logger.Println("SGU=", TcpUtilsStructPtr.SGUID, " already updated!!")
@@ -774,11 +755,9 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 	TcpUtilsStructPtr.OutputPacketLength = TcpUtilsStructPtr.PacketTypeToPacketLength(TcpUtilsStructPtr.OutputPacketType)
 
 	switch OutputPacketType {
-
 	case 0x8000:
 		{
 			TcpUtilsStructPtr.OutputPacketLength += expressionLength
-			break
 		}
 
 	case 0x3000:
@@ -792,22 +771,18 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 	case 0xB000:
 		{
 			TcpUtilsStructPtr.OutputPacketLength += expressionLength
-			break
 		}
 	case 0xD000:
 		{
 			TcpUtilsStructPtr.OutputPacketLength += expressionLength
-			break
 		}
 	case 0x1022:
 		{
 			TcpUtilsStructPtr.OutputPacketLength += expressionLength
-			break
 		}
 	case 0x1025:
 		{
 			TcpUtilsStructPtr.OutputPacketLength += expressionLength
-			break
 		}
 	}
 
@@ -828,7 +803,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 		currentTime := time.Now().Local()
 		newFormat = currentTime.Format("20060102150405")
 	} else {
-
 		currentTime := time.Now().Local()
 		currentTime = currentTime.In(loc)
 		newFormat = currentTime.Format("20060102150405")
@@ -848,40 +822,32 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 	case 0x0011:
 		{
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0x0022:
 		{
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0x0023:
 		{
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0x0024:
 		{
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0x0025:
 		{
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0xe001:
 		{
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0x1000:
 		{
-			break
 		}
 	case 0x2000:
 		{
-			break
 		}
 	case 0x3000:
 		{
@@ -945,7 +911,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 			for k := 0; k < 14; k++ {
 				TcpUtilsStructPtr.AddByteToOutputBuff((byte)(newFormat[k]))
 			}
-			break
 		}
 	case 0x8000:
 		{
@@ -962,9 +927,7 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 			for k := 0; k < expressionLength; k++ {
 				TcpUtilsStructPtr.AddByteToOutputBuff(expression[k])
 			}
-			break
 		}
-
 	case 0x9000:
 		{
 			logger.Println("Entered into 0X9000 Packet..")
@@ -979,7 +942,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 			logger.Println("Output :", expression[2])
 			logger.Println("Output :", expression[3])
 			logger.Println("Exited from 0X9000 Packet..")
-			break
 		}
 
 	case 0xA000:
@@ -1008,7 +970,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 			logger.Println("Output :",(int)(expression[3]));
 			logger.Println("Output :",(byte)(expression[4]));*/
 			logger.Println("Exited from 0XA000 Packet..")
-			break
 		}
 	case 0xB000:
 		{
@@ -1022,7 +983,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 				TcpUtilsStructPtr.AddByteToOutputBuff((byte)(expression[i+2]))
 			}
 			logger.Println("Exited from 0XB000 Packet..")
-			break
 		}
 	case 0xD000:
 		{
@@ -1036,13 +996,11 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 				TcpUtilsStructPtr.AddByteToOutputBuff((byte)(expression[i+2]))
 			}
 			logger.Println("Exited from 0XD000 Packet..")
-			break
 		}
 	case 0x1024:
 		{
 			logger.Println("Entered into 0x1024 Packet..")
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0xC000:
 		{
@@ -1050,7 +1008,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 			Scu_Current_pos[SCUID] = 0
 			TcpUtilsStructPtr.WriteEightBytesToOutput(SCUID)
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-			break
 		}
 	case 0x1022:
 		{
@@ -1077,11 +1034,11 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 	if TcpUtilsStructPtr.outputBufferDipstick < (TcpUtilsStructPtr.OutputPacketLength + 3) {
 		logger.Println("Output Packet Formating Error")
 	}
+
 	TcpUtilsStructPtr.SendSocketData()
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
-
 	//add data from socket buffer to local buffer
 	TcpUtilsStructPtr.ReceiveSocketData()
 
@@ -1122,7 +1079,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 	TcpUtilsStructPtr.InputPacketLength = TcpUtilsStructPtr.ReadTwoBytesFromInput()
 	if TcpUtilsStructPtr.InputPacketLength > 0x8000 {
 		logger.Printf("Invalid Packet Length = %x   \n", TcpUtilsStructPtr.InputPacketLength)
-
 	} else {
 		//System.out.printf("Packet Length = %x   \n",InputPacketLength);
 	}
@@ -1367,17 +1323,13 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			logger.Printf("Received sgu coordinates: %f\n", TcpUtilsStructPtr.SGULatitude)
 			logger.Printf("Received sgu coordinates: %f\n", TcpUtilsStructPtr.SGULongitude)
 			logger.Println("Received packet type 0x1001 successfully")
-			break
 		}
-
 	case 0x2001:
 		{ //Get SCU details
 			//parse packet
 			TcpUtilsStructPtr.ReadNBytesFromInput(34)
 			logger.Println("Received packet type 0x2001 successfully")
-			break
 		}
-
 	case 0x3001:
 		{ //Get/Set Digital Output State
 			//parse packet
@@ -1420,14 +1372,12 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			}
 
 			logger.Printf("Received packet type 0x3001 successfully. status = %2.2x\n", status)
-			break
 		}
 	case 0x4001:
 		{ //Get Time Stamp
 			//parse packet
 			TcpUtilsStructPtr.ReadNBytesFromInput(23)
 			logger.Println("Received packet type 0x4001 successfully")
-			break
 		}
 	case 0x5001:
 		{ //Set Time Stamp
@@ -1441,7 +1391,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			}
 
 			logger.Println("Received packet type 0x5001 successfully")
-			break
 		}
 	case 0x6001:
 		{ //Get Input Status
@@ -1449,15 +1398,12 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			//ReadNBytesFromInput(24);
 			TcpUtilsStructPtr.ReadNBytesFromInput(TcpUtilsStructPtr.InputPacketLength + 3 - FixedPacketLength)
 			logger.Println("Received packet type 0x6001 successfully")
-			break
 		}
 	case 0x7001:
 		{ //Set Input Status
 			//parse packet
 			TcpUtilsStructPtr.ReadNBytesFromInput(66)
 			logger.Println("Received packet type 0x7001 successfully")
-
-			break
 		}
 	case 0x0006:
 		{
@@ -1751,7 +1697,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			logger.Printf("Received Modbus Parity: %d\n", modbusParity9001)
 			logger.Printf("Received Modbus NumberOfBits: %d\n", modbusNumberOfBits9001)
 			logger.Println("Received packet type 0x9001 successfully")
-			break
 		}
 	case 0xA001:
 		{ //Get Modbus details
@@ -1772,7 +1717,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			logger.Printf("Received Modbus ResponseRate: %d\n", modbusDeviceTimeout)
 			logger.Printf("Received Modbus SlaveIds: %d\n", modbusSlaveId)
 			logger.Println("Received packet type 0xA001 successfully")
-			break
 		}
 	case 0xB001:
 		{ //get modbus Data
@@ -1788,7 +1732,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			logger.Printf("Received Modbus DeviceId1: %d\n", modbusDeviceId1)
 			logger.Printf("Received Modbus DataLength: %d\n", modbusDataLength)
 			logger.Println("Received packet type 0xB001 successfully")
-			break
 		}
 	case 0x8001:
 		{
@@ -1859,7 +1802,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			} else {
 				logger.Println("Recieved 0x8001 Packet with invalid status=", status)
 			}
-			break
 		}
 	//READY FOR OTA SCU
 	case 0x0032:
@@ -1913,7 +1855,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			} else {
 				logger.Println("Invalid OTA ready status=", status)
 			}
-			break
 		}
 	case 0x0035:
 		{
@@ -1999,7 +1940,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 					}
 				}
 			}
-			break
 		}
 	//READY FOR OTA
 	case 0x0038:
@@ -2044,7 +1984,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			} else {
 				logger.Println("Invalid OTA ready status=", status)
 			}
-			break
 		}
 	case 0x0034:
 		{
@@ -2119,9 +2058,7 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 					logger.Println(eorr)
 				}
 			}
-			break
 		}
-
 	default:
 		{
 			TcpUtilsStructPtr.Is_updating = false
@@ -2132,7 +2069,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) MonitorPackets(ticker *time.Ticker) {
-
 	for range ticker.C {
 
 		logger.Println("Entering Socket ticker")
@@ -2263,19 +2199,15 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendAlertSMS() {
 					} else {
 						logger.Printf("%s\n", string(contents))
 					}
-
 				}
 			}
-
 		}
-
 	}
-
 	//SguUtilsStructPtr.SguTcpUtilsStruct.AlertStateOld = SguUtilsStructPtr.SguTcpUtilsStruct.AlertState
-
 }
 
-func Sgu_firmware_init(firmware map[int64][]byte, firmware_size string, firmware_major byte, firmware_minor byte, firmware_name string, firmware_bucket int64) {
+func Sgu_firmware_init(firmware map[int64][]byte, firmware_size string, firmware_major byte,
+	firmware_minor byte, firmware_name string, firmware_bucket int64) {
 	Sgu_firmware = make(map[int64][]byte)
 	Sgu_firmware = firmware
 	Sgu_firmware_size = firmware_size
@@ -2286,7 +2218,8 @@ func Sgu_firmware_init(firmware map[int64][]byte, firmware_size string, firmware
 	logger.Println("SGU FIRMWARE INITIALISED!!")
 }
 
-func Scu_firmware_init(firmware map[int64][]byte, firmware_size string, firmware_major byte, firmware_minor byte, firmware_name string, firmware_bucket int64) {
+func Scu_firmware_init(firmware map[int64][]byte, firmware_size string, firmware_major byte,
+	firmware_minor byte, firmware_name string, firmware_bucket int64) {
 	Scu_firmware = make(map[int64][]byte)
 	Scu_firmware = firmware
 	Scu_firmware_size = firmware_size
@@ -2357,18 +2290,19 @@ func SyncFromDB() bool {
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	rows, err := db.Query("SELECT scu_id, status from scu_status")
-	defer rows.Close()
 	if err != nil {
 		logger.Println("error while sync status from DB: ", err)
 		return false
-	} else {
-		var scu, state string
-		status.Lock()
-		for rows.Next() {
-			rows.Scan(&scu, &state)
-			status.lbuffer[scu] = state
-		}
-		status.Unlock()
 	}
+	defer rows.Close()
+
+	var scu, state string
+	status.Lock()
+	for rows.Next() {
+		rows.Scan(&scu, &state)
+		status.lbuffer[scu] = state
+	}
+	status.Unlock()
+
 	return true
 }
