@@ -12,11 +12,11 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"userMgmt"
-	//"fmt"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+
+	"userMgmt"
 )
 
 func Addgroup(w http.ResponseWriter, r *http.Request) {
