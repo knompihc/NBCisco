@@ -376,7 +376,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) GetByteFromOutputBuff() byte {
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) AddByteToOutputBuff(newByte byte) {
-	//logger.Println("####=",TcpUtilsStructPtr.responseLineBuff)
 
 	if TcpUtilsStructPtr.outputBufferDipstick < MaxInOutBufferLength {
 		if TcpUtilsStructPtr.outputBufferWritePtr >= 0 && TcpUtilsStructPtr.outputBufferWritePtr < MaxInOutBufferLength {
@@ -392,17 +391,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) AddByteToOutputBuff(newByte byte) {
 		//TBD
 		logger.Println("Warning! Output Buff is full")
 	}
-	/*   if (TcpUtilsStructPtr.outputBufferDipstick < MaxInOutBufferLength){
-	            TcpUtilsStructPtr.responseLineBuff[TcpUtilsStructPtr.outputBufferWritePtr] = newByte
-				TcpUtilsStructPtr.outputBufferWritePtr++
-	            TcpUtilsStructPtr.outputBufferWritePtr &= (MaxInOutBufferLength-1)
-	            TcpUtilsStructPtr.outputBufferDipstick++
-
-	        }else {
-	            //should be spinning here till thread empties buffer.
-	            //TBD
-	            logger.Println("Warning! Output Buff is full");
-	        }*/
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) ReadTwoBytesFromInput() int {
@@ -562,183 +550,78 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) GetSCUIndexFromSCUID(SCUID uint64) int 
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) PacketTypeToPacketLength(PacketType int) int {
+	fixedPacketLength := 0
 	switch PacketType {
 	case 0x0001:
-		{
-			return FixedPacketLength + 12
-		}
-
+		fixedPacketLength = FixedPacketLength + 12
 	case 0x0002:
-		{
-			return FixedPacketLength
-		}
-
+		fixedPacketLength = FixedPacketLength
 	case 0x0003:
-		{
-			return FixedPacketLength + 28
-		}
-
+		fixedPacketLength = FixedPacketLength + 28
 	case 0x0004:
-		{
-			return FixedPacketLength + 9
-		}
-
+		fixedPacketLength = FixedPacketLength + 9
 	case 0x0005:
-		{
-			return FixedPacketLength + 10
-		}
-
+		fixedPacketLength = FixedPacketLength + 10
 	case 0xe000:
-		{
-			return FixedPacketLength + 2 + TcpUtilsStructPtr.NumOfSCUs*24
-		}
-
-	case 0x0011:
-		{
-			return FixedPacketLength + 1
-		}
-	case 0x0022:
-		{
-			return FixedPacketLength + 1
-		}
-	case 0x0023:
-		{
-			return FixedPacketLength + 1
-		}
-
-	case 0x0024:
-		{
-			return FixedPacketLength + 1
-		}
-	case 0x0025:
-		{
-			return FixedPacketLength + 1
-		}
-
-	case 0xe001:
-		{
-			return FixedPacketLength + 1
-		}
-
+		fixedPacketLength = FixedPacketLength + 2 + TcpUtilsStructPtr.NumOfSCUs*24
+	case 0x0011, 0x0022, 0x0023, 0x0024, 0x0025, 0xe001:
+		fixedPacketLength = FixedPacketLength + 1
 	case 0x1000:
-		{
-			return FixedPacketLength
-		}
-
+		fixedPacketLength = FixedPacketLength
 	case 0x1001:
-		{
-			return FixedPacketLength + 11
-		}
+		fixedPacketLength = FixedPacketLength + 11
 	case 0x2000:
-		{
-			return FixedPacketLength + 8
-		}
+		fixedPacketLength = FixedPacketLength + 8
 	case 0x2001:
-		{
-			return FixedPacketLength + 34
-		}
-
+		fixedPacketLength = FixedPacketLength + 34
 	case 0x3000:
-		{
-			return FixedPacketLength + 14
-		}
-
+		fixedPacketLength = FixedPacketLength + 14
 	case 0x3001:
-		{
-			return FixedPacketLength + 15
-		}
+		fixedPacketLength = FixedPacketLength + 15
 	case 0x4000:
-		{
-			return FixedPacketLength + 8
-		}
-
+		fixedPacketLength = FixedPacketLength + 8
 	case 0x4001:
-		{
-			return FixedPacketLength + 23
-		}
+		fixedPacketLength = FixedPacketLength + 23
 	case 0x5000:
-		{
-			return FixedPacketLength + 22
-		}
+		fixedPacketLength = FixedPacketLength + 22
 	case 0x5001:
-		{
-			return FixedPacketLength + 9
-		}
-
+		fixedPacketLength = FixedPacketLength + 9
 	case 0x6000:
-		{
-			return FixedPacketLength + 8
-		}
+		fixedPacketLength = FixedPacketLength + 8
 	case 0x6001:
-		{
-			return FixedPacketLength + 24
-		}
+		fixedPacketLength = FixedPacketLength + 24
 	case 0x7000:
-		{
-			return FixedPacketLength + 65
-		}
+		fixedPacketLength = FixedPacketLength + 65
 	case 0x7001:
-		{
-			return FixedPacketLength + 66
-		}
-	case 0x8000:
-		{
-			return FixedPacketLength + 11
-		}
-	case 0x8001:
-		{
-			return FixedPacketLength + 11
-		}
+		fixedPacketLength = FixedPacketLength + 66
+	case 0x8000, 0x8001:
+		fixedPacketLength = FixedPacketLength + 11
 	case 0x9000:
-		{
-			return FixedPacketLength + 5
-		}
+		fixedPacketLength = FixedPacketLength + 5
 	case 0x9001:
-		{
-			return FixedPacketLength + 6
-		}
+		fixedPacketLength = FixedPacketLength + 6
 	case 0xA000:
-		{
-			return FixedPacketLength + 13
-		}
+		fixedPacketLength = FixedPacketLength + 13
 	case 0xA001:
-		{
-			return FixedPacketLength + 14
-		}
+		fixedPacketLength = FixedPacketLength + 14
 	case 0xB000:
-		{
-			return FixedPacketLength
-		}
+		fixedPacketLength = FixedPacketLength
 	case 0xD000:
-		{
-			return FixedPacketLength - 1
-		}
+		fixedPacketLength = FixedPacketLength - 1
 	case 0xB001:
-		{
-			return FixedPacketLength + 4
-		}
+		fixedPacketLength = FixedPacketLength + 4
 	case 0x1024:
-		{
-			return FixedPacketLength + 1
-		}
+		fixedPacketLength = FixedPacketLength + 1
 	case 0xC000:
-		{
-			return FixedPacketLength + 9
-		}
+		fixedPacketLength = FixedPacketLength + 9
 	case 0x1022:
-		{
-			return FixedPacketLength + 1
-		}
+		fixedPacketLength = FixedPacketLength + 1
 	case 0x1025:
-		{
-			return FixedPacketLength + 9
-		}
+		fixedPacketLength = FixedPacketLength + 9
 	default:
-		{
-			logger.Printf("Invalid Packet Type  %x Specifid", PacketType)
-		}
+		logger.Printf("Invalid Packet Type  %x Specifid", PacketType)
 	}
-	return 0
+	return fixedPacketLength
 }
 
 func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int, SCUID uint64, StatusByte int,
@@ -899,7 +782,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 				TcpUtilsStructPtr.AddByteToOutputBuff((byte)(tval))
 				TcpUtilsStructPtr.AddByteToOutputBuff((byte)(tval))
 			}
-			break
 		}
 	case 0x4000:
 		{
@@ -1148,7 +1030,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			TcpUtilsStructPtr.OutputSeqNumber = TcpUtilsStructPtr.InputSeqNumber
 			logger.Println("Received packet type 0x0001 successfully")
 			TcpUtilsStructPtr.SendResponsePacket(0x11, 0, 0, nil, 0)
-			break
 		}
 	case 0x0002:
 		{
@@ -1157,7 +1038,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			TcpUtilsStructPtr.OutputSeqNumber = TcpUtilsStructPtr.InputSeqNumber
 			logger.Println("Received packet type 0x0002 successfully")
 			TcpUtilsStructPtr.SendResponsePacket(0x22, 0, 0, nil, 0)
-			break
 		}
 	case 0x0003:
 		{
@@ -1196,7 +1076,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			logger.Println("Received packet type 0x0003 successfully")
 			TcpUtilsStructPtr.SendResponsePacket(0x23, 0, 0, nil, 0)
 			TcpUtilsStructPtr.SCUListreceived = true
-			break
 		}
 	case 0x0004:
 		{ //SCU Deleted
@@ -1206,7 +1085,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			TcpUtilsStructPtr.OutputSeqNumber = TcpUtilsStructPtr.InputSeqNumber
 			logger.Println("Received packet type 0x0004 successfully")
 			TcpUtilsStructPtr.SendResponsePacket(0x24, 0, 0, nil, 0)
-			break
 		}
 	case 0x0005:
 		{
@@ -1295,7 +1173,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 			TcpUtilsStructPtr.LampStatusCount = tempCounter
 			logger.Println("Received packet type 0xe000 successfully")
 			TcpUtilsStructPtr.SendResponsePacket(0xe001, 0, 0, nil, 0)
-			break
 		}
 
 	//response from SGU for queries
@@ -2096,7 +1973,8 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) sendFirmwarePacketWithRetry(data []byte
 	}
 }
 
-func (TcpUtilsStructPtr *TcpUtilsStruct) scu_sendFirmwarePacketWithRetry(data []byte, pos int64, status int, scuid uint64) {
+func (TcpUtilsStructPtr *TcpUtilsStruct) scu_sendFirmwarePacketWithRetry(data []byte,
+	pos int64, status int, scuid uint64) {
 	attempt := 0
 	du, _ := time.ParseDuration("120s")
 	for ; attempt < 13; attempt++ {
