@@ -702,36 +702,10 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 	//done with common part.
 	switch TcpUtilsStructPtr.OutputPacketType {
 
-	case 0x0011:
-		{
-			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-		}
-	case 0x0022:
-		{
-			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-		}
-	case 0x0023:
-		{
-			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-		}
-	case 0x0024:
-		{
-			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-		}
-	case 0x0025:
-		{
-			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-		}
-	case 0xe001:
-		{
-			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
-		}
+	case 0x0011, 0x0022, 0x0023, 0x0024, 0x0025, 0xe001:
+		TcpUtilsStructPtr.AddByteToOutputBuff((byte)(StatusByte))
 	case 0x1000:
-		{
-		}
 	case 0x2000:
-		{
-		}
 	case 0x3000:
 		{
 			//separate LampId and LampVal;
@@ -740,15 +714,8 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 			log.Println("getSetByte--:", getSetByte)
 			TcpUtilsStructPtr.WriteEightBytesToOutput(SCUID)
 			TcpUtilsStructPtr.AddByteToOutputBuff((byte)(getSetByte))
-			//TcpUtilsStructPtr.AddByteToOutputBuff((byte)(0x09));
 			if getSetByte == 1 {
 				//for set need to set additional fields
-				/*if lampVal==0{
-					TcpUtilsStructPtr.AddByteToOutputBuff((byte)(lampVal ));
-				}else{
-					x:=0x09
-					TcpUtilsStructPtr.AddByteToOutputBuff((byte)(x));
-				}*/
 				logger.Println("Dim=", lampVal)
 				tt := 0x00
 				if lampVal == 1 {
@@ -784,9 +751,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) SendResponsePacket(OutputPacketType int
 			}
 		}
 	case 0x4000:
-		{
-			break
-		}
 	case 0x5000:
 		{
 			TcpUtilsStructPtr.WriteEightBytesToOutput(SCUID)
@@ -975,7 +939,10 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 		TcpUtilsStructPtr.RewindInputBuffer(3)
 		return
 	}
-	if TcpUtilsStructPtr.inputBufferReadPtr > 0 && TcpUtilsStructPtr.inputBufferReadPtr+TcpUtilsStructPtr.inputBufferDipstick > 0 && TcpUtilsStructPtr.inputBufferReadPtr+TcpUtilsStructPtr.inputBufferDipstick < len(TcpUtilsStructPtr.commandLineBuff) {
+	if TcpUtilsStructPtr.inputBufferReadPtr > 0 &&
+		(TcpUtilsStructPtr.inputBufferReadPtr+TcpUtilsStructPtr.inputBufferDipstick > 0) &&
+		(TcpUtilsStructPtr.inputBufferReadPtr+TcpUtilsStructPtr.inputBufferDipstick <
+			len(TcpUtilsStructPtr.commandLineBuff)) {
 		logger.Printf("Packet=%x", TcpUtilsStructPtr.commandLineBuff[TcpUtilsStructPtr.inputBufferReadPtr:TcpUtilsStructPtr.inputBufferReadPtr+TcpUtilsStructPtr.inputBufferDipstick])
 	}
 
@@ -986,8 +953,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 		TcpUtilsStructPtr.SGUID = SGUID
 	}
 	logger.Printf("SGU ID  %d \n", TcpUtilsStructPtr.SGUID)
-
-	//TimeStampString  := make([]byte,14)
 
 	//get first 8 bytes of timestamp
 	TcpUtilsStructPtr.TimeStampHi = TcpUtilsStructPtr.ReadEightBytesFromInput()
@@ -1013,11 +978,6 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) ParseInputPacket() {
 	TimeStampString += string(tArray[:6])
 
 	logger.Println(TimeStampString)
-
-	//logger.Println("Packet");
-	//for i:=TcpUtilsStructPtr.inputBufferReadPtr;i<TcpUtilsStructPtr.inputBufferDipstick+TcpUtilsStructPtr.inputBufferReadPtr;i++{
-
-	//}
 
 	switch TcpUtilsStructPtr.InputPacketType {
 	case 0x0001:
