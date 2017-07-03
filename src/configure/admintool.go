@@ -6,17 +6,18 @@
  * Developed by: Chipmonk Technologies Private Limited
  * Copyright and Disclaimer Notice Software:
  **************************************************************************/
+
 package configure
 
 import (
-	//"fmt"
 	"encoding/json"
 	"io"
 	"net/http"
-	"sguUtils"
-	"userMgmt"
 
 	_ "github.com/go-sql-driver/mysql"
+
+	"sguUtils"
+	"userMgmt"
 )
 
 type scu struct {
@@ -35,27 +36,20 @@ func Getsculoc(w http.ResponseWriter, r *http.Request) {
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	rows, err := db.Query("Select scu_id,location_name,location_lat,location_lng from scu")
-	defer rows.Close()
 	chkErr(err, &w)
+	defer rows.Close()
+
 	data := []scu{}
 	for rows.Next() {
 		var id, name, lat, lng string
 		rows.Scan(&id, &name, &lat, &lng)
-		tm := scu{}
-		tm.Name = name
-		tm.Lat = lat
-		tm.Lng = lng
-		tm.Id = id
-		data = append(data, tm)
+		data = append(data, scu{name, lat, lng, id})
 	}
-	a, err := json.Marshal(data)
-	if err != nil {
-		logger.Println("Error in json.Marshal")
-		logger.Println(err)
-	} else {
-		//logger.Println(a)
-		w.Write(a)
 
+	if a, err := json.Marshal(data); err != nil {
+		logger.Println("Error in json.Marshal", err)
+	} else {
+		w.Write(a)
 	}
 }
 
@@ -72,14 +66,14 @@ func Updatesculoc(w http.ResponseWriter, r *http.Request) {
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	stmt, err := db.Prepare("Update scu SET location_name=?,location_lat=?,location_lng=? where scu_id='" + id + "'")
-	defer stmt.Close()
 	chkErr(err, &w)
+	defer stmt.Close()
+
 	_, eorr := stmt.Exec(name, lat, lng)
 	chkErr(eorr, &w)
 	if eorr == nil {
 		io.WriteString(w, "done")
 	}
-	defer stmt.Close()
 }
 
 type parameter struct {
@@ -101,30 +95,28 @@ func Getdeploymentparameter(w http.ResponseWriter, r *http.Request) {
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
-	rows, err := db.Query("Select deployment.deployment_id,deployment_parameter.scu_onoff_pkt_delay,deployment_parameter.scu_poll_delay,deployment_parameter.scu_schedule_pkt_delay,deployment_parameter.scu_onoff_retry_delay,deployment_parameter.scu_max_retry, deployment_parameter.server_pkt_ack_delay from deployment left join deployment_parameter on deployment.deployment_id=deployment_parameter.deployment_id")
-	defer rows.Close()
+	rows, err := db.Query("Select deployment.deployment_id,deployment_parameter.scu_onoff_pkt_delay," +
+		"deployment_parameter.scu_poll_delay,deployment_parameter.scu_schedule_pkt_delay," +
+		"deployment_parameter.scu_onoff_retry_delay,deployment_parameter.scu_max_retry, " +
+		"deployment_parameter.server_pkt_ack_delay from deployment left join deployment_parameter on d" +
+		"eployment.deployment_id=deployment_parameter.deployment_id")
 	chkErr(err, &w)
+	defer rows.Close()
+
 	data := []parameter{}
 	for rows.Next() {
-		var deployment_id, scu_onoff_pkt_delay, scu_poll_delay, scu_schedule_pkt_delay, scu_onoff_retry_delay, scu_max_retry, server_pkt_ack_delay string
-		rows.Scan(&deployment_id, &scu_onoff_pkt_delay, &scu_poll_delay, &scu_schedule_pkt_delay, &scu_onoff_retry_delay, &scu_max_retry, &server_pkt_ack_delay)
-		tm := parameter{}
-		//tm.Id=id
-		tm.Deployment_id = deployment_id
-		tm.Scu_onoff_pkt_delay = scu_onoff_pkt_delay
-		tm.Scu_poll_delayd = scu_poll_delay
-		tm.Scu_schedule_pkt_delay = scu_schedule_pkt_delay
-		tm.Scu_onoff_retry_delay = scu_onoff_retry_delay
-		tm.Scu_max_retry = scu_max_retry
-		tm.Server_pkt_ack_delay = server_pkt_ack_delay
-		data = append(data, tm)
+		var deployment_id, scu_onoff_pkt_delay, scu_poll_delay, scu_schedule_pkt_delay,
+			scu_onoff_retry_delay, scu_max_retry, server_pkt_ack_delay string
+		rows.Scan(&deployment_id, &scu_onoff_pkt_delay, &scu_poll_delay, &scu_schedule_pkt_delay,
+			&scu_onoff_retry_delay, &scu_max_retry, &server_pkt_ack_delay)
+
+		data = append(data, parameter{deployment_id, scu_onoff_pkt_delay, scu_poll_delay,
+			scu_schedule_pkt_delay, scu_onoff_retry_delay, scu_max_retry, server_pkt_ack_delay})
 	}
-	a, err := json.Marshal(data)
-	if err != nil {
-		logger.Println("Error in json.Marshal")
-		logger.Println(err)
+
+	if a, err := json.Marshal(data); err != nil {
+		logger.Println("Error in json.Marshal: ", err)
 	} else {
-		//logger.Println(a)
 		w.Write(a)
 	}
 }
@@ -144,10 +136,16 @@ func Updatedeploymentparameter(w http.ResponseWriter, r *http.Request) {
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
-	//stmt, err := db.Prepare("Update deployment_parameter SET scu_onoff_pkt_delay=?,scu_poll_delay=?,scu_schedule_pkt_delay=?,scu_onoff_retry_delay=?,scu_max_retry=? where deployment_id='"+deployment_id+"'")
-	stmt, _ := db.Prepare("INSERT INTO deployment_parameter (deployment_id, scu_onoff_pkt_delay, scu_poll_delay,scu_schedule_pkt_delay,scu_onoff_retry_delay,scu_max_retry,server_pkt_ack_delay) VALUES ('" + deployment_id + "','" + scu_onoff_pkt_delay + "','" + scu_poll_delay + "','" + scu_schedule_pkt_delay + "','" + scu_onoff_retry_delay + "','" + scu_max_retry + "','" + server_pkt_ack_delay + "') ON DUPLICATE KEY UPDATE scu_onoff_pkt_delay='" + scu_onoff_pkt_delay + "', scu_poll_delay='" + scu_poll_delay + "', scu_schedule_pkt_delay='" + scu_schedule_pkt_delay + "', scu_onoff_retry_delay='" + scu_onoff_retry_delay + "', scu_max_retry='" + scu_max_retry + "', server_pkt_ack_delay='" + server_pkt_ack_delay + "'")
-	_, err := stmt.Exec()
+	stmt, _ := db.Prepare("INSERT INTO deployment_parameter (deployment_id, scu_onoff_pkt_delay, " +
+		"scu_poll_delay,scu_schedule_pkt_delay,scu_onoff_retry_delay,scu_max_retry,server_pkt_ack_delay) VALUES ('" +
+		deployment_id + "','" + scu_onoff_pkt_delay + "','" + scu_poll_delay + "','" + scu_schedule_pkt_delay + "','" +
+		scu_onoff_retry_delay + "','" + scu_max_retry + "','" + server_pkt_ack_delay + "') ON DUPLICATE KEY UPDATE " +
+		"scu_onoff_pkt_delay='" + scu_onoff_pkt_delay + "', scu_poll_delay='" + scu_poll_delay + "', " +
+		"scu_schedule_pkt_delay='" + scu_schedule_pkt_delay + "', scu_onoff_retry_delay='" + scu_onoff_retry_delay +
+		"', scu_max_retry='" + scu_max_retry + "', server_pkt_ack_delay='" + server_pkt_ack_delay + "'")
 	defer stmt.Close()
+	_, err := stmt.Exec()
+
 	if err == nil {
 		*per_scu_delay = scu_onoff_pkt_delay
 		sguUtils.Config_Params(scu_onoff_pkt_delay, scu_poll_delay, scu_onoff_retry_delay, scu_max_retry)
@@ -156,7 +154,6 @@ func Updatedeploymentparameter(w http.ResponseWriter, r *http.Request) {
 	} else {
 		io.WriteString(w, "error")
 	}
-	defer stmt.Close()
 }
 
 func Adduser(w http.ResponseWriter, r *http.Request) {
@@ -170,18 +167,24 @@ func Adduser(w http.ResponseWriter, r *http.Request) {
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	db := dbController.Db
-	//statement := "select password  from login where user_email='"+email1+"'"
-	statement1 := "SELECT CAST(AES_DECRYPT(password,'234FHF?#@$#%%jio4323486') AS CHAR(10000) CHARACTER SET utf8 ) AS password FROM login where user_email= AES_ENCRYPT('" + email1 + "','234FHF?#@$#%%jio4323486');"
+	statement1 := "SELECT CAST(AES_DECRYPT(password,'234FHF?#@$#%%jio4323486') AS CHAR(10000) " +
+		"CHARACTER SET utf8 ) AS password FROM login where user_email= AES_ENCRYPT('" + email1 +
+		"','234FHF?#@$#%%jio4323486');"
 	stmt, err := db.Query(statement1)
-	defer stmt.Close()
 	chkErr(err, &w)
+	defer stmt.Close()
+
 	if stmt.Next() {
 		io.WriteString(w, "already")
 		return
 	} else {
-		stmt1, err := db.Prepare("insert login set user_email=AES_ENCRYPT('" + email1 + "','234FHF?#@$#%%jio4323486'),password=AES_ENCRYPT('" + pass1 + "','234FHF?#@$#%%jio4323486'),admin_op='" + admin + "'  ;")
+		stmt1, err := db.Prepare("insert login set user_email=AES_ENCRYPT('" + email1 +
+			"','234FHF?#@$#%%jio4323486'),password=AES_ENCRYPT('" + pass1 + "','234FHF?#@$#%%jio4323486'),admin_op='" +
+			admin + "'  ;")
 		defer stmt1.Close()
-		logger.Println("insert login set user_email=AES_ENCRYPT('" + email1 + "','234FHF?#@$#%%jio4323486'),password=AES_ENCRYPT('" + pass1 + "','234FHF?#@$#%%jio4323486'),admin_op='" + admin + "'  ;")
+		logger.Println("insert login set user_email=AES_ENCRYPT('" + email1 +
+			"','234FHF?#@$#%%jio4323486'),password=AES_ENCRYPT('" + pass1 + "','234FHF?#@$#%%jio4323486'),admin_op='" +
+			admin + "'  ;")
 		_, eorr := stmt1.Exec()
 		if eorr == nil {
 			logger.Println(err)
