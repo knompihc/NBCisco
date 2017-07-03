@@ -37,6 +37,7 @@ import (
 	"NBApis"
 	"configure"
 	"dbUtils"
+	"lampUtils"
 	"mapview"
 	"report"
 	"sguUtils"
@@ -154,7 +155,6 @@ type scuota struct {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
-
 	passed := true
 
 	r.ParseForm()
@@ -162,17 +162,12 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	id := r.Form["deployment_id"]
 
-	//logger.Println(username[0])
-	//logger.Println(password[0])
 	session, _ := store.Get(r, "auth")
 
 	if dbController.DbConnected {
-
 		statement := "select * from deployment where deployment_id='" + id[0] + "'"
 
 		rows, err := dbController.Db.Query(statement)
-		//logger.Println(statement)
-
 		if err != nil {
 			logger.Println("Error quering database  for login information")
 			logger.Println(err)
@@ -184,7 +179,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 			rows.Close()
 		}
 	}
-	//session.Values["set"] = 1
+
 	if passed {
 		//logger.Println("Matching entry found. Redirecting")
 		session.Save(r, w)
@@ -192,14 +187,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		fmt.Fprintf(w, "<h1>Invalid User Name Or Password</h1>")
-		//http.Error(w, "Invalid User Name Or Password\n",http.StatusInternalServerError)
-		//http.Redirect(w, r,  "index.html", http.StatusFound)
-
-		//logger.Println("Timer started")
-		//timer1 := time.NewTimer(time.Second * 5)
-		//<-timer1.C
-		//logger.Println("Timer stoped")
-		//http.Redirect(w, r,  "index.html", http.StatusFound)
 	}
 }
 
@@ -240,13 +227,11 @@ func getUid(w http.ResponseWriter, r *http.Request) {
 	var uid string
 	data := session.Values["uid"]
 	if str, ok := data.(string); ok {
-		/* act on str */
 		uid = str
 		logger.Println(uid)
 	} else {
 		uid = ""
 		logger.Println("error")
-		/* not string */
 	}
 	io.WriteString(w, uid)
 }
@@ -276,13 +261,8 @@ func adminlogin(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "login.html", http.StatusFound)
 		return
 	}
-	//logger.Println(username[0])
-	//logger.Println(password[0])
 
 	if dbController.DbConnected {
-
-		//row, err := db.Query("select user_email, password from login where user_email=?",1)
-
 		statement := "select * from login where user_email=AES_ENCRYPT('" +
 			username[0] + "','" + aesPassword + "') " +
 			"AND password=AES_ENCRYPT('" +
@@ -313,14 +293,6 @@ func adminlogin(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "index.html", http.StatusFound)
 	} else {
 		fmt.Fprintf(w, "<h1>Invalid Admin User Name Or Password</h1>")
-		//http.Error(w, "Invalid User Name Or Password\n",http.StatusInternalServerError)
-		//http.Redirect(w, r,  "index.html", http.StatusFound)
-
-		//logger.Println("Timer started")
-		//timer1 := time.NewTimer(time.Second * 5)
-		//<-timer1.C
-		//logger.Println("Timer stoped")
-		//http.Redirect(w, r,  "index.html", http.StatusFound)
 	}
 }
 
@@ -331,7 +303,6 @@ func LocationAdd(w http.ResponseWriter, r *http.Request) {
 
 	var lastInsertId int
 	r.ParseForm()
-	// logic part of log in
 
 	location_name := r.Form["location_name"]
 	location_lat := r.Form["location_lat"]
@@ -341,8 +312,9 @@ func LocationAdd(w http.ResponseWriter, r *http.Request) {
 	logger.Println(location_lng[0])
 	if dbController.DbConnected {
 
-		//row, err := db.Query(INSERT INTO locations(location_name, location_lat, location_lng)VALUES ($2, $3, $4),location_name[0],location_lat[0],location_lng[0])
-		err := dbController.Db.QueryRow("INSERT INTO locations(location_name, location_lat, location_lng)VALUES ($1, $2, $3)returning location_id;", location_name[0], location_lat[0], location_lng[0]).Scan(&lastInsertId)
+		err := dbController.Db.QueryRow("INSERT INTO locations(location_name, location_lat, "+
+			"location_lng)VALUES ($1, $2, $3)returning location_id;", location_name[0], location_lat[0],
+			location_lng[0]).Scan(&lastInsertId)
 
 		if err != nil {
 			logger.Println(err)
@@ -350,14 +322,6 @@ func LocationAdd(w http.ResponseWriter, r *http.Request) {
 		} else {
 			logger.Println("last inserted id =", lastInsertId)
 			http.Redirect(w, r, "blank.html", http.StatusFound)
-			//fmt.Fprintf(w, "<h1>Location Details Are Added Successfully!</h1><br><a href="blank.html">press back</a>")
-			//http.Error(w, "Invalid User Name Or Password\n",http.StatusInternalServerError)
-			//http.Redirect(w, r,  "index.html", http.StatusFound)
-			//logger.Println("Timer started")
-			//timer1 := time.NewTimer(time.Second * 5)
-			//<-timer1.C
-			//logger.Println("Timer stoped")
-			//http.Redirect(w, r,  "index.html", http.StatusFound)
 		}
 	}
 }
@@ -369,7 +333,6 @@ func getLocationNames(w http.ResponseWriter, r *http.Request) {
 
 	var name string
 	r.ParseForm()
-	// logic part of log in
 
 	logger.Println("enters into getlocations!")
 	if dbController.DbConnected {
@@ -384,12 +347,7 @@ func getLocationNames(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					logger.Println(err)
 				} else {
-					//logger.Println("Getting Values From DB!")
-					//logger.Println("Location Valus:",name)
 					response = append(response, name)
-					//fmt.Printf("%q\n", strings.Split(name))
-					//w.Header(name)
-					//fmt.Fprintf(w, "<h1>Location Name Are Already Present:</h1>",name)
 				}
 			}
 		}
@@ -418,13 +376,11 @@ func sguAdd(w http.ResponseWriter, r *http.Request) {
 	logger.Println(location_name[0])
 	logger.Println(sgu_lat[0])
 	logger.Println(sgu_lng[0])
-	// logic part of log in
 
 	logger.Println("enters into sguadd!")
 	if dbController.DbConnected {
-
-		//row, err := db.Query(INSERT INTO sgus(sgu_lat, sgu_lng, location_name) VALUES (?, ?, ?);)
-		err := dbController.Db.QueryRow("INSERT INTO sgus(sgu_id,sgu_lat, sgu_lng, location_name) VALUES ($1,$2, $3, $4)returning sgu_id;", sgu_id[0], sgu_lat[0], sgu_lng[0], location_name[0]).Scan(&lastInsertId1)
+		err := dbController.Db.QueryRow("INSERT INTO sgus(sgu_id,sgu_lat, sgu_lng, location_name) VALUES "+
+			"($1,$2, $3, $4)returning sgu_id;", sgu_id[0], sgu_lat[0], sgu_lng[0], location_name[0]).Scan(&lastInsertId1)
 		if err != nil {
 			logger.Println(err)
 			fmt.Fprintf(w, "<h1>SGU Is Already Present!</h1>")
@@ -443,7 +399,7 @@ func AddSchedule(w http.ResponseWriter, r *http.Request) {
 	var en string
 
 	r.ParseForm()
-	// logic part of log in
+
 	ssd := r.Form["startdate"][0]
 	logger.Println("ScheduleStartDate:", ssd)
 	sst := r.Form["starttime"][0]
@@ -506,7 +462,7 @@ func AddSchedule(w http.ResponseWriter, r *http.Request) {
 	} else {
 		vfd = strconv.Itoa((fd))
 	}
-	//if(iy<fy-1){
+
 	if iy == fy {
 		if im == fm {
 			if fd == id {
@@ -523,32 +479,7 @@ func AddSchedule(w http.ResponseWriter, r *http.Request) {
 		exp = "((((D>=" + vid + "&&M=" + vim + ")||(M>" + vim + "))&&Y=" + strconv.Itoa(iy) + ")||(Y>" + strconv.Itoa(iy) + "&&Y<" + strconv.Itoa(fy) + ")||((M<" + vfm +
 			"||(M=" + vfm + "&&D<=" + vfd + "))&&Y=" + strconv.Itoa(fy) + "))"
 	}
-	/*if im<12{
-		exp+="||((M>="+strconv.Itoa((im)+1)+"||(D>="+strconv.Itoa(id)+"&&M=="+strconv.Itoa(im)+"))&&Y=="+strconv.Itoa(iy)+")"
-		if fm>1{
-			exp+="||((M<="+strconv.Itoa((fm)-1)+"||(D<="+strconv.Itoa(fd)+"&&M=="+strconv.Itoa(fm)+"))&&Y=="+strconv.Itoa(fy)+")"
-		}else{
-			exp+="||(D<="+strconv.Itoa(fd)+"&&M=="+strconv.Itoa(fm)+"&&Y=="+strconv.Itoa(fy)+")"
-		}
-	}else{
-		exp+="||(D>="+strconv.Itoa(id)+"&&M=="+strconv.Itoa(im)+"&&Y=="+strconv.Itoa(iy)+")"
-		if fm>1{
-			exp+="||((M<="+strconv.Itoa((fm)-1)+"||(D<="+strconv.Itoa(fd)+"&&M=="+strconv.Itoa(fm)+"))&&Y=="+strconv.Itoa(fy)+")"
-		}else{
-			exp+="||(D<="+strconv.Itoa(fd)+"&&M=="+strconv.Itoa(fm)+"&&Y=="+strconv.Itoa(fy)+")"
-		}
-	}*/
-	/*exp+="||((M>="+strconv.Itoa((im)+1)+"&&Y=="+strconv.Itoa(iy)+")"
-	exp+="||(M<="+strconv.Itoa((fm)-1)+"&&Y=="+strconv.Itoa(fy)+")"
-	exp+="||(D>="+strconv.Itoa(id)+"&&M=="+strconv.Itoa(im)+"&&Y=="+strconv.Itoa(iy)+")"
-	exp+="||(D<="+strconv.Itoa(fd)+"&&M=="+strconv.Itoa(fm)+"&&Y=="+strconv.Itoa(fy)+"))"*/
-	/*}else{
-		exp+="((M>="+strconv.Itoa((im)+1)+"&&Y=="+strconv.Itoa(iy)+")"
-		exp+="||(M<="+strconv.Itoa((fm)-1)+"&&Y=="+strconv.Itoa(fy)+")"
-		exp+="||(D>="+strconv.Itoa(id)+"&&M=="+strconv.Itoa(im)+"&&Y=="+strconv.Itoa(iy)+")"
-		exp+="||(D<="+strconv.Itoa(fd)+"&&M=="+strconv.Itoa(fm)+"&&Y=="+strconv.Itoa(fy)+"))"
-	}*/
-	//exp="(Y>="+sy+"&&Y<="+ey+")"
+
 	logger.Println("startTime=", isti, " endTime=", ieti)
 	if isti <= ieti {
 		exp += "&&(T>=" + timestr + "&&T<=" + timeen + ")"
@@ -577,13 +508,9 @@ func AddSchedule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if res == nil {
-		//fmt.Fprint(w,"no data stored in database")
-		//http.Redirect(w,r,"errormessage.html",http.StatusFound)
 		io.WriteString(w, "Something Went Wrong!")
 	} else {
 		io.WriteString(w, "Schedule Added Successfully!")
-		//fmt.Fprint(w,"DataSaved Successfuly")
-		//http.Redirect(w,r,"success.html",http.StatusFound)
 	}
 }
 
@@ -615,7 +542,6 @@ func ViewSchedule(w http.ResponseWriter, r *http.Request) {
 			}
 			if cnt != 0 {
 				scheid += " " + schid
-
 			} else {
 				scheid += schid
 			}
@@ -642,13 +568,12 @@ func scuAdd(w http.ResponseWriter, r *http.Request) {
 	logger.Println(sgu_id[0])
 	logger.Println(scu_lat[0])
 	logger.Println(scu_lng[0])
-	// logic part of log in
 
 	logger.Println("enters into scuAdd!")
 	if dbController.DbConnected {
-
-		//row, err := db.Query(INSERT INTO scus( scu_id, scu_lat, scu_lng, sgu_id, location_name) VALUES (?, ?, ?, ?, ?);)
-		err := dbController.Db.QueryRow("INSERT INTO scus( scu_id, scu_lat, scu_lng, sgu_id, location_name) VALUES ($1,$2, $3, $4,$5)returning scu_id;", scu_id[0], scu_lat[0], scu_lng[0], sgu_id[0], location_name[0]).Scan(&lastInsertId1)
+		err := dbController.Db.QueryRow("INSERT INTO scus( scu_id, scu_lat, scu_lng, sgu_id, location_name) "+
+			"VALUES ($1,$2, $3, $4,$5)returning scu_id;", scu_id[0], scu_lat[0], scu_lng[0], sgu_id[0],
+			location_name[0]).Scan(&lastInsertId1)
 		if err != nil {
 			logger.Println(err)
 			fmt.Fprintf(w, "<h1>SCU Is Already Present!</h1>")
@@ -700,89 +625,20 @@ func AllLampControlpwm(w http.ResponseWriter, r *http.Request) {
 			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
 			return
 		}
-		if Levent > 0 {
-			if Levent <= 2 {
-				Levent = 5
-			} else if Levent > 2 && Levent <= 4 {
-				Levent = 6
-			} else if Levent > 4 && Levent <= 6 {
-				Levent = 7
-			} else if Levent > 6 && Levent <= 8 {
-				Levent = 8
-			}
-		}
+		lampUtils.UpdateLampDim(&Levent)
 		logger.Println("Brightness value sent to SGU: ", Levent)
 		LampController.LampEvent = Levent
-
 		//GetSet field is set to set mode
 		LampController.LampEvent |= 0x100
 		LampController.PacketType = 0x3000
 		LampController.ConfigArray = nil
 		LampController.ConfigArrayLength = 0
-
 		LampController.W = nil
 		LampController.ResponseSend = nil
 		LampControllerChannel <- LampController
 		logger.Println("Lamp event sent to channel")
 		tcpUtils.SetTempStatus(arrsc[i], NewStatus)
-		//tcpUtils.SetTempStatus(arrsc[i],NewStatus)
 	}
-	//logger.Println(m)
-	//logger.Println(m["SGUID"][0])
-	//logger.Println(m["SCUID"][0])
-	//logger.Println(m["SCUID"][0])
-	//logger.Println("I am inside")
-
-	/*LampController.SGUID, err = strconv.ParseUint(m["SGUID"][0],10,64)
-
-	//logger.Println("Parsed SGU ID")
-
-	if err != nil {
-		logger.Println("Invalid SGUID" + m["SGUID"][0] + " specified")
-		return
-	}
-
-	LampController.SCUID, err = strconv.ParseUint(m["SCUID"][0],10,64)
-
-	//logger.Println("Parsed SCU ID")
-
-	if err != nil {
-		logger.Println("Invalid SCUID" + m["SCUID"][0] + " specified")
-		return
-	}
-
-	LampController.LampEvent, err = strconv.Atoi(m["LampEvent"][0])
-
-	//logger.Println("Parsed lampEvent")
-
-	if err != nil {
-		logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
-		return
-	}
-
-	LampController.PacketType = 0x3000
-	LampController.ConfigArray = nil
-	LampController.ConfigArrayLength = 0
-
-
-	if (LampController.W != nil) {
-
-		logger.Println("Lamp event specified when still waiting for response from old event")
-		logger.Println("Old event will be overwritten")
-
-	}
-
-	LampController.W = w
-
-	LampController.ResponseSend  = make(chan bool)
-	//fmt.Printf("LampId = %d, LampVal = %d\n", LampId, LampVal)
-	LampControllerChannel<-LampController
-	logger.Println("Lamp event sent to channel")
-
-	//wait for response
-	//TBD. Add a timeout here
-	<-LampController.ResponseSend
-	*/
 }
 
 func LampControl(w http.ResponseWriter, r *http.Request) {
@@ -798,44 +654,8 @@ func LampControl(w http.ResponseWriter, r *http.Request) {
 	logger.Println(u.RawQuery)
 
 	m, _ := url.ParseQuery(u.RawQuery)
-	/*arrsg:=strings.Split(m["SGUID"][0]," ")
-	arrsc:=strings.Split(m["SCUID"][0]," ")
-	for i:=0;i<len(arrsg)-1;i++ {
-		logger.Println("SGUID ",arrsg[i])
-		logger.Println("SCUID ",arrsc[i])
-		LampController.SGUID, err = strconv.ParseUint(arrsg[i],10,64)
-		if err != nil {
-			logger.Println("Invalid SGUID" + arrsg[i] + " specified")
-			return
-		}
-		LampController.SCUID, err = strconv.ParseUint(arrsc[i],10,64)
-		if err != nil {
-			logger.Println("Invalid SCUID" + arrsc[i] + " specified")
-			return
-		}
-		LampController.LampEvent, err = strconv.Atoi(m["LampEvent"][0])
-		if err != nil {
-			logger.Println("Invalid lamp contral val  " + m["lampEvent"][0] + " specified")
-			return
-		}
-
-		LampController.PacketType = 0x3000
-		LampController.ConfigArray = nil
-		LampController.ConfigArrayLength = 0
-
-		LampController.ResponseSend  = make(chan bool)
-		LampControllerChannel<-LampController
-		logger.Println("Lamp event sent to channel")
-	}*/
-	//logger.Println(m)
-	//logger.Println(m["SGUID"][0])
-	//logger.Println(m["SCUID"][0])
-	//logger.Println(m["SCUID"][0])
-	//logger.Println("I am inside")
 
 	LampController.SGUID, err = strconv.ParseUint(m["SGUID"][0], 10, 64)
-
-	//logger.Println("Parsed SGU ID")
 
 	if err != nil {
 		logger.Println("Invalid SGUID" + m["SGUID"][0] + " specified")
@@ -843,8 +663,6 @@ func LampControl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	LampController.SCUID, err = strconv.ParseUint(m["SCUID"][0], 10, 64)
-
-	//logger.Println("Parsed SCU ID")
 
 	if err != nil {
 		logger.Println("Invalid SCUID" + m["SCUID"][0] + " specified")
@@ -863,36 +681,22 @@ func LampControl(w http.ResponseWriter, r *http.Request) {
 	} else {
 		NewStatus = "0"
 	}
-	if Levent > 0 {
-		if Levent <= 2 {
-			Levent = 5
-		} else if Levent > 2 && Levent <= 4 {
-			Levent = 6
-		} else if Levent > 4 && Levent <= 6 {
-			Levent = 7
-		} else if Levent > 6 && Levent <= 8 {
-			Levent = 8
-		}
-	}
+	lampUtils.UpdateLampDim(&Levent)
 	logger.Println("Brightness value sent to SGU: ", Levent)
 	LampController.LampEvent = Levent
 	//GetSet field is set to set mode
 	LampController.LampEvent |= 0x100
-
 	LampController.PacketType = 0x3000
 	LampController.ConfigArray = nil
 	LampController.ConfigArrayLength = 0
 
 	if LampController.W != nil {
-
 		logger.Println("Lamp event specified when still waiting for response from old event")
 		logger.Println("Old event will be overwritten")
 	}
 
 	LampController.W = w
-
 	LampController.ResponseSend = make(chan bool)
-	//fmt.Printf("LampId = %d, LampVal = %d\n", LampId, LampVal)
 	LampControllerChannel <- LampController
 	logger.Println("Lamp event sent to channel")
 	tcpUtils.SetTempStatus(m["SCUID"][0], NewStatus)
@@ -942,17 +746,8 @@ func AllLampControl(w http.ResponseWriter, r *http.Request) {
 		} else {
 			NewStatus = "0"
 		}
-		if Levent > 0 {
-			if Levent <= 2 {
-				Levent = 5
-			} else if Levent > 2 && Levent <= 4 {
-				Levent = 6
-			} else if Levent > 4 && Levent <= 6 {
-				Levent = 7
-			} else if Levent > 6 && Levent <= 8 {
-				Levent = 8
-			}
-		}
+		lampUtils.UpdateLampDim(&Levent)
+
 		logger.Println("Brightness value sent to SGU: ", Levent)
 		LampController.LampEvent = Levent
 		//GetSet field is set to set mode
@@ -992,8 +787,6 @@ func AddEnergyParameter(w http.ResponseWriter, r *http.Request) {
 		logger.Println(err)
 	}
 	if res1 == nil {
-		//fmt.Fprint(w,"no data stored in database")
-		//fmt.Fprintf(w, "energystore", "no data stored in database")
 		http.Redirect(w, r, "errormessage.html", http.StatusFound)
 	} else {
 		fmt.Fprint(w, "DataSaved Successfully")
@@ -1031,7 +824,6 @@ func AddEnergyParameter(w http.ResponseWriter, r *http.Request) {
 					logger.Println("Query:", tempArray[ind+2])
 					ind++
 				}
-				//energytcputil .SendEnargyControl(deviceId,Length,Query)
 
 				//set get/set to 1 i.e. set mode
 				energysguutil.LampEvent = 1
@@ -1065,21 +857,6 @@ func Communparams(w http.ResponseWriter, r *http.Request) {
 	logger.Println("stopBit:", stopBit)
 	logger.Println("parityBit:", parityBit)
 	logger.Println("dataBits:", dataBits)
-	/* stmt1, err1 := dbController.Db.Prepare("INSERT idquerydefinition SET deviceid=?,length=?,query=?")
-	if err1!=nil{
-		logger.Println(err)
-	}
-	res1, err1 := stmt1.Exec(deviceId, Length ,Query1)
-	if err1!=nil{
-		logger.Println(err)
-	}
-	if res1==nil{
-		//fmt.Fprint(w,"no data stored in database")
-		//fmt.Fprintf(w, "energystore", "no data stored in database")
-		http.Redirect(w,r,"errormessage.html",http.StatusFound)
-	}else{} */
-	//fmt.Fprint(w,"DataSaved Successfuly")
-	//http.Redirect(w,r,"success.html",http.StatusFound)
 	logger.Println("executing 9000 packet")
 	stmt, err := dbController.Db.Prepare("select sgu_id from sgu")
 	if err != nil {
@@ -1104,11 +881,8 @@ func Communparams(w http.ResponseWriter, r *http.Request) {
 			logger.Println("Parity Bit:", (tempArray[2] & 0x00F))
 			tempArray[3] = (byte)(dataBits)
 			logger.Println("Data Bit:", (tempArray[3] & 0x00F))
-			//energytcputil .SendEnargyControl(deviceId,Length,Query)
 			//set get/set to 1 i.e. set mode
 			energysguutil.LampEvent = 1
-			//LampControllerChannel<-energysguutil
-			//sending 9000 Packet
 			energysguutil.PacketType = 0x9000
 			energysguutil.ConfigArray = tempArray
 			energysguutil.ConfigArrayLength = len(tempArray)
@@ -1117,7 +891,6 @@ func Communparams(w http.ResponseWriter, r *http.Request) {
 				logger.Println(err)
 			}
 		}
-		//http.Redirect(w,r,"energystore.html",http.StatusFound)
 		fmt.Fprint(w, "Packet data send Successfully")
 	}
 }
@@ -1135,21 +908,7 @@ func Polingparams(w http.ResponseWriter, r *http.Request) {
 	responseRate, _ := strconv.ParseInt(r.URL.Query().Get("response_rate"), 10, 64)
 	timeOut, _ := strconv.ParseInt(r.URL.Query().Get("time_out"), 10, 64)
 	slaveId, _ := strconv.ParseInt(r.URL.Query().Get("device_id"), 10, 64)
-	/* stmt1, err1 := dbController.Db.Prepare("INSERT idquerydefinition SET deviceid=?,length=?,query=?")
-	if err1!=nil{
-		logger.Println(err)
-	}
-	res1, err1 := stmt1.Exec(deviceId, Length ,Query1)
-	if err1!=nil{
-		logger.Println(err)
-	}
-	if res1==nil{
-		//fmt.Fprint(w,"no data stored in database")
-		//fmt.Fprintf(w, "energystore", "no data stored in database")
-		http.Redirect(w,r,"errormessage.html",http.StatusFound)
-	}else{} */
-	//fmt.Fprint(w,"DataSaved Successfuly")
-	//http.Redirect(w,r,"success.html",http.StatusFound)
+
 	logger.Println("executing A000 packet")
 	stmt, err := dbController.Db.Prepare("select sgu_id from sgu")
 	if err != nil {
@@ -1277,8 +1036,7 @@ func UpdateInventory(w http.ResponseWriter, r *http.Request) {
 	Lamps, _ := strconv.ParseInt(r.FormValue("Lamp")[0:], 10, 64)
 	SGU, _ := strconv.ParseInt(r.FormValue("SGU")[0:], 10, 64)
 	SCU, _ := strconv.ParseInt(r.FormValue("SCU")[0:], 10, 64)
-	//for database connectivity.
-	logger.Println("ttt")
+
 	stmt, err := dbController.Db.Prepare("select Quantity from inventory")
 	if err != nil {
 		logger.Println(err)
@@ -1482,9 +1240,7 @@ func forSuccessemail(loginemail1 string) {
 	smtpUser := "havellstreetcomm@chipmonk.in"
 
 	emailConf := &EmailConfig{smtpUser, smtpPass, smtpHost, smtpPort}
-
 	emailauth := smtp.PlainAuth("", emailConf.Username, emailConf.Password, emailConf.Host)
-
 	sender := "havellstreetcomm@chipmonk.in"
 
 	receivers := []string{
@@ -1599,9 +1355,9 @@ func forticketemail(email1, wapticketno1 string) {
 			fmt.Println(err)
 		}
 	}
-	logger.Println("Executing send gmail methd")
+	logger.Println("Executing send gmail method")
 
-	err := email.Send(smtpHost+":"+strconv.Itoa(emailConf.Port), //convert port number from int to string
+	err := email.Send(smtpHost+":"+strconv.Itoa(emailConf.Port),
 		emailauth,
 		emailContent)
 
@@ -1661,8 +1417,7 @@ func sguotadisplay(w http.ResponseWriter, r *http.Request) {
 		var ma, mi, sta sql.NullString
 		rows.Scan(&tmp.Sgu, &ma, &mi, &sta)
 		tmp.Chk = ""
-		//tmp.Avail="2.0"
-		//tmp.Chk=""
+
 		if ma.Valid && mi.Valid {
 			tmp.Curr = "ver_" + ma.String + "." + mi.String
 		} else {
@@ -1671,8 +1426,7 @@ func sguotadisplay(w http.ResponseWriter, r *http.Request) {
 		if sta.Valid {
 			tmp.Status = sta.String
 		}
-		//tmp.Curr="ver_"+ma+"."+mi
-		//tmp.Status=sta
+
 		logger.Println("Sta=", sta, " id=", tmp.Sgu)
 		res.Sgu = append(res.Sgu, tmp)
 	}
@@ -1701,8 +1455,6 @@ func scuotadisplay(w http.ResponseWriter, r *http.Request) {
 		var ma, mi, sta sql.NullString
 		rows.Scan(&tmp.Scu, &ma, &mi, &sta)
 		tmp.Chk = ""
-		//tmp.Avail="2.0"
-		//tmp.Chk=""
 		if ma.Valid && mi.Valid {
 			tmp.Curr = "ver_" + ma.String + "." + mi.String
 		} else {
@@ -1711,8 +1463,7 @@ func scuotadisplay(w http.ResponseWriter, r *http.Request) {
 		if sta.Valid {
 			tmp.Status = sta.String
 		}
-		//tmp.Curr="ver_"+ma+"."+mi
-		//tmp.Status=sta
+
 		logger.Println("Sta=", sta, " id=", tmp.Scu)
 		res.Scu = append(res.Scu, tmp)
 	}
@@ -1756,7 +1507,6 @@ func deletereportperson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//logger.Println("Select distinct van_id from booking where id in ("+qids+")")
 	rows, err := dbController.Db.Query("delete from reportcofig where id in (" + qids + ")")
 	defer rows.Close()
 	if err != nil {
@@ -1768,13 +1518,11 @@ func deletereportperson(w http.ResponseWriter, r *http.Request) {
 }
 
 func deletealertperson(w http.ResponseWriter, r *http.Request) {
-	qids := r.URL.Query().Get("ids")
-
 	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+	qids := r.URL.Query().Get("ids")
 
-	//logger.Println("Select distinct van_id from booking where id in ("+qids+")")
 	rows, err := dbController.Db.Query("delete from admin where id in (" + qids + ")")
 	defer rows.Close()
 	if err != nil {
@@ -1801,7 +1549,6 @@ func alluserview(w http.ResponseWriter, r *http.Request) {
 		tmp := viewuser{}
 		var chkstat string
 		rows.Scan(&tmp.User_email, &chkstat)
-		//fmt.Println("this is chk::"+statechk)
 		if chkstat == "0" {
 			tmp.Admin_op = "NO"
 		} else {
@@ -1818,13 +1565,15 @@ func alluserview(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteuserperson(w http.ResponseWriter, r *http.Request) {
-	qids := r.URL.Query().Get("ids")
-	logger.Println(qids)
 	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
 
-	//logger.Println("Select distinct van_id from booking where id in ("+qids+")")
+	qids := r.URL.Query().Get("ids")
+	logger.Println(qids)
+
+	dbController.DbSemaphore.Lock()
+	defer dbController.DbSemaphore.Unlock()
 	rows, err := dbController.Db.Query("delete from login where CAST(AES_DECRYPT(user_email,'234FHF?#@$#%%jio4323486') AS CHAR(10000) CHARACTER SET utf8 ) in (" + qids + ")")
 	defer rows.Close()
 	if err != nil {
@@ -1966,39 +1715,41 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		if out.Scope == "repo" {
 			db := dbController.Db
 			rows, err := db.Query("delete from ota_server where deployment_id='" + Deployment_id + "' and device='SGU'")
+			if err != nil {
+				logger.Println(err)
+				http.Redirect(w, r, "ota.html", http.StatusFound)
+				return
+			}
 			defer rows.Close()
-			if err != nil {
-				logger.Println(err)
-				http.Redirect(w, r, "ota.html", http.StatusFound)
-				return
-			}
+
 			rows1, err := db.Query("insert into ota_server (deployment_id,device,access_token) values ('" + Deployment_id + "','SGU','" + out.Access_token + "')")
+			if err != nil {
+				logger.Println(err)
+				http.Redirect(w, r, "ota.html", http.StatusFound)
+				return
+			}
 			defer rows1.Close()
-			if err != nil {
-				logger.Println(err)
-				http.Redirect(w, r, "ota.html", http.StatusFound)
-				return
-			}
+
 			rows2, err := db.Query("delete from ota_server where deployment_id='" + Deployment_id + "' and device='SCU'")
+			if err != nil {
+				logger.Println(err)
+				http.Redirect(w, r, "ota.html", http.StatusFound)
+				return
+			}
 			defer rows2.Close()
-			if err != nil {
-				logger.Println(err)
-				http.Redirect(w, r, "ota.html", http.StatusFound)
-				return
-			}
+
 			rows3, err := db.Query("insert into ota_server (deployment_id,device,access_token) values ('" + Deployment_id + "','SCU','" + out.Access_token + "')")
-			defer rows3.Close()
 			if err != nil {
 				logger.Println(err)
 				http.Redirect(w, r, "ota.html", http.StatusFound)
 				return
 			}
+			defer rows3.Close()
 		}
 		http.Redirect(w, r, "ota.html", http.StatusFound)
 		return
 	}
 	http.Redirect(w, r, "ota.html", http.StatusFound)
-	return
 }
 
 func setrepo(w http.ResponseWriter, r *http.Request) {
@@ -2009,7 +1760,9 @@ func setrepo(w http.ResponseWriter, r *http.Request) {
 
 	db := dbController.Db
 	rows, err := db.Query("select access_token from ota_server where deployment_id='" + Deployment_id + "' and device='" + dev + "'")
+	chkErr(err)
 	defer rows.Close()
+
 	if rows.Next() {
 		var token string
 		rows.Scan(&token)
@@ -2023,18 +1776,11 @@ func setrepo(w http.ResponseWriter, r *http.Request) {
 
 		// list all repositories for the authenticated user
 		repos, _, err := client.Repositories.List("", nil)
-		if err != nil {
-			logger.Println(err)
-		}
+		chkErr(err)
 
 		for _, v := range repos {
 			logger.Println(v)
 		}
-		//logger.Println(repos)
-	}
-	if err != nil {
-		logger.Println(err)
-		return
 	}
 }
 
@@ -2046,7 +1792,9 @@ func getallrepo(w http.ResponseWriter, r *http.Request) {
 
 	db := dbController.Db
 	rows, err := db.Query("select access_token from ota_server where deployment_id='" + Deployment_id + "' and device='" + dev + "'")
+	chkErr(err)
 	defer rows.Close()
+
 	if rows.Next() {
 		var token string
 		rows.Scan(&token)
@@ -2079,10 +1827,6 @@ func getallrepo(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 	}
-	if err != nil {
-		logger.Println(err)
-		return
-	}
 }
 
 func downloadSguRepo(w http.ResponseWriter, r *http.Request) {
@@ -2090,9 +1834,7 @@ func downloadSguRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Println("Checking SGUs")
 	sids := r.URL.Query().Get("ids")
-	//rurl:=r.URL.Query().Get("url")
 	dev := "SGU"
 	db := dbController.Db
 	rows, err := db.Query("select access_token,detail,major,minor,firmware_name from ota_server where deployment_id='" + Deployment_id + "' and device='" + dev + "'")
@@ -2146,14 +1888,13 @@ func downloadSguRepo(w http.ResponseWriter, r *http.Request) {
 			bc := make([]byte, 1024)
 			rea.Read(bc)
 			Sgu_firmware[int64(i)] = bc
-			//logger.Println(bc)
 		}
 		Sgu_firmware_bucket = int64(bkt)
 		logger.Println("Size=", Sgu_firmware_size, " Major=", Sgu_firmware_major, " Minor=", Sgu_firmware_minor, " Name=", Sgu_firmware_name, " Buckets=", Sgu_firmware_bucket)
 		srows, err := dbController.Db.Query("select sgu_id,major,minor from sgu where sgu_id in (" + sids + ")")
 		defer srows.Close()
 		if err != nil {
-			logger.Println("Error tryting to read SGU list from database")
+			logger.Println("Error trying to read SGU list from database")
 			io.WriteString(w, "1")
 			logger.Println(err)
 			return
@@ -2189,7 +1930,6 @@ func downloadScuRepo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Println("Checking SCUs")
 	sids := r.URL.Query().Get("ids")
 	dev := "SCU"
 	db := dbController.Db
@@ -2244,7 +1984,6 @@ func downloadScuRepo(w http.ResponseWriter, r *http.Request) {
 			bc := make([]byte, 1024)
 			rea.Read(bc)
 			Scu_firmware[int64(i)] = bc
-			//logger.Println(bc)
 		}
 		Scu_firmware_bucket = int64(bkt)
 		logger.Println("Size=", Scu_firmware_size, " Major=", Scu_firmware_major, " Minor=", Scu_firmware_minor, " Name=", Scu_firmware_name, " Buckets=", Scu_firmware_bucket)
@@ -2303,6 +2042,7 @@ func getallbranchesforRepo(w http.ResponseWriter, r *http.Request) {
 	logger.Println(str.Owner, str.Fullname)
 	db := dbController.Db
 	rows, err := db.Query("select access_token from ota_server where deployment_id='" + Deployment_id + "' and device='" + dev + "'")
+	chkErr(err)
 	defer rows.Close()
 	if rows.Next() {
 		var token string
@@ -2333,10 +2073,7 @@ func getallbranchesforRepo(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 	}
-	if err != nil {
-		logger.Println(err)
-		return
-	}
+	chkErr(err)
 }
 
 func connectrepo(w http.ResponseWriter, r *http.Request) {
@@ -2485,7 +2222,6 @@ func saveLocation(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 	io.WriteString(w, "1")
 }
 
@@ -2515,7 +2251,6 @@ func getLocation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := dbController.Db
-
 	rows, err := db.Query("select usr,pno,loc,rw,pso,pla,height,pty,opw,lf,earth,phase,fun,lul,lat,lng from survey")
 	defer rows.Close()
 	if err != nil {
@@ -2525,8 +2260,10 @@ func getLocation(w http.ResponseWriter, r *http.Request) {
 	ans := []survey{}
 	for rows.Next() {
 		str := survey{}
-		var Usr, Pno, Mun, Ward, Loc, Rw, Pso, Pla, Height, Pty, Opw, Lf, Earth, Phase, Fun, Lul, Lat, Lng sql.NullString
-		rows.Scan(&Usr, &Pno, &Loc, &Rw, &Pso, &Pla, &Height, &Pty, &Opw, &Lf, &Earth, &Phase, &Fun, &Lul, &Lat, &Lng)
+		var Usr, Pno, Mun, Ward, Loc, Rw, Pso, Pla, Height, Pty, Opw, Lf, Earth,
+			Phase, Fun, Lul, Lat, Lng sql.NullString
+		rows.Scan(&Usr, &Pno, &Loc, &Rw, &Pso, &Pla, &Height, &Pty, &Opw, &Lf,
+			&Earth, &Phase, &Fun, &Lul, &Lat, &Lng)
 		if Usr.Valid {
 			str.Usr = Usr.String
 		}
@@ -2796,12 +2533,11 @@ func downloadLocation(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf(err.Error())
 	}
 	Openfile, err := os.Open("survey.xlsx")
-	defer Openfile.Close() //Close after function return
 	if err != nil {
-		//File not found, send 404
 		http.Error(w, "File not found.", 404)
 		return
 	}
+	defer Openfile.Close()
 
 	//File is found, create and send the correct headers
 
@@ -2834,13 +2570,9 @@ func SyncAll(w http.ResponseWriter, r *http.Request) {
 	state := tcpUtils.SyncFromDB()
 	if !state {
 		w.Write([]byte("Sync Error"))
-		//      http.Redirect(w, r, "map-view.html", http.StatusFound)
-		return
 	} else {
 		w.Write([]byte("Sync Successfull"))
-		//      http.Redirect(w, r, "map-view.html", http.StatusFound)
 	}
-	return
 }
 
 func main() {
@@ -2850,7 +2582,6 @@ func main() {
 	wl, err := net.Dial("udp", "logs3.papertrailapp.com:32240")
 	defer wl.Close()
 	if remoteLog {
-		//	logger =log.New(wl, "HAVELLS_STREET_COMM: ", log.Lshortfile)
 		if err != nil {
 			log.Fatal("error")
 		}
@@ -2867,7 +2598,6 @@ func main() {
 	if port == "" {
 		logger.Println("$PORT must be set")
 	}
-	//logger.Println("Starting Application")
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
@@ -2877,7 +2607,9 @@ func main() {
 		defer dbController.Db.Close()
 	}
 	rows, err := dbController.Db.Query("SELECT * from deployment_parameter where deployment_id='" + Deployment_id + "'")
+	chkErr(err)
 	defer rows.Close()
+
 	for rows.Next() {
 		var did string
 		rows.Scan(&did, &per_scu_delay, &scu_polling, &scu_scheduling, &scu_retry_delay, &scu_max_retry, &ack_delay)
@@ -2902,7 +2634,6 @@ func main() {
 
 	sguConnectionChan = make(chan net.Conn, sguChanSize)
 	LampControllerChannel = make(chan sguUtils.SguUtilsLampControllerStruct, lampControllerChansize)
-	//energysguutilChannel = make(chan  sguUtils.SguUtilsEnergyCntrStruct, lampControllerChansize)
 	SendSMSChan = make(chan string, SendSMSChanSize)
 
 	configure.InitConfigure(LampControllerChannel, dbController, logger)
@@ -2914,7 +2645,7 @@ func main() {
 	configure.Config_Params(scu_scheduling, &per_scu_delay)
 	NBApis.Config_Params(scu_scheduling, per_scu_delay)
 	mapview.InitMapview(dbController, logger)
-	//go report.InitSendreport(dbController)
+
 	report.InitReport(dbController, logger)
 	report.InitSendreport(dbController)
 	go report.ReportGenThread()
@@ -2924,10 +2655,10 @@ func main() {
 
 	go tcpServer.StartTcpServer(sguConnectionChan, logger)
 
-	HandleSguConnectionsDone := sguUtils.HandleSguConnections(sguConnectionChan, dbController, SendSMSChan, maxNumScusPerSgu)
+	HandleSguConnectionsDone := sguUtils.HandleSguConnections(sguConnectionChan,
+		dbController, SendSMSChan, maxNumScusPerSgu)
 
 	HandleLampEventsDone := sguUtils.HandleLampEvents(LampControllerChannel)
-	//HandleEnergyEventsDone := sguUtils.HandleEnergyEvents(energysguutilChannel)
 	StartSendSMSThreadDone := configure.StartSendSMSThread(SendSMSChan)
 	logger.Println("TCP server socket set successfully")
 
@@ -2937,12 +2668,9 @@ func main() {
 	if state1 {
 		logger.Println("SCUs status synced from DB")
 	}
-	//logger.Println("directory Set")
 	http.HandleFunc("/SBlogin", login)
 	//http.HandleFunc("/Havellslogin", login)
 	http.HandleFunc("/adminlogin", adminlogin)
-
-	//logger.Println("Login Set")
 
 	http.HandleFunc("/configure/updatedeploymentparameter", configure.Updatedeploymentparameter)
 	http.HandleFunc("/configure/getdeploymentparameter", configure.Getdeploymentparameter)
@@ -2966,15 +2694,10 @@ func main() {
 	http.HandleFunc("/LampControl", LampControl)
 	http.HandleFunc("/AllLampControl", AllLampControl)
 	http.HandleFunc("/AllLampControlpwm", AllLampControlpwm)
-	//logger.Println("Lampcontroller Set")
 	http.HandleFunc("/locationadd", LocationAdd)
-	//logger.Println("Location Details are adding here!")
 	http.HandleFunc("/sguadd", sguAdd)
-	//logger.Println("sgu Details are adding here!")
 	http.HandleFunc("/scuadd", scuAdd)
-	//logger.Println("scu Details are adding here!")
 	http.HandleFunc("/LocationNames", getLocationNames)
-	//logger.Println("Location Names are getting here!")
 	http.HandleFunc("/configure/scuconfigure", configure.Scuconfigure)
 	http.HandleFunc("/configure/scuview", configure.Scuview)
 	http.HandleFunc("/configure/scuadd", configure.Scuadd)
@@ -3055,7 +2778,6 @@ func main() {
 	http.HandleFunc("/system/zone/schedule", NBApis.SetScheduleForZone)
 	http.HandleFunc("/system/group/schedule", NBApis.SetScheduleForGroup)
 	http.HandleFunc("/system/delete/zone", NBApis.DeleteGateWaysFromZone)
-	//paarth
 	http.HandleFunc("/system/createzone", NBApis.CreateZone)
 	http.HandleFunc("/system/getstatus", NBApis.GetStatus)
 	http.HandleFunc("/system/gateway/lamps", NBApis.GetStreetLamp)
@@ -3064,14 +2786,12 @@ func main() {
 	http.HandleFunc("/system/zone/attachedSchedule", NBApis.ZoneView)
 	http.HandleFunc("/system/group/attachedSchedule", NBApis.GroupView)
 	http.HandleFunc("/system/delete/group", NBApis.DeleteLamp)
-	//logger.Println("Starting HTTP Server")
-	//downloadSguRepo()
-	//err = http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
+
 	state := tcpUtils.SyncFromDB()
 	if !state {
 		logger.Println("error in sync SCU Status from DB")
 	}
-	//err = http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
+
 	go func() {
 		err1 := http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
 		if err1 != nil {
@@ -3087,5 +2807,4 @@ func main() {
 	close(StartSendSMSThreadDone)
 	close(HandleSguConnectionsDone)
 	close(HandleLampEventsDone)
-	//close(HandleEnergyEventsDone)
 }
