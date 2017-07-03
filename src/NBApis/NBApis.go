@@ -29,9 +29,9 @@ import (
 	"strconv"
 	"strings"
 	//	"tcpServer"
+	"sync"
 	"tcpUtils"
 	"time"
-	"sync"
 	//	"github.com/context"
 	"github.com/jwt-go-master"
 	//	"github.com/scorredoira/email"
@@ -58,15 +58,16 @@ var status = struct {
 	lbuffer map[string]string
 }{lbuffer: make(map[string]string)}
 
-func InitNBApis(LampConChannel chan sguUtils.SguUtilsLampControllerStruct, dbcon dbUtils.DbUtilsStruct, logg *log.Logger) {
+func InitNBApis(LampConChannel chan sguUtils.SguUtilsLampControllerStruct,
+	dbcon dbUtils.DbUtilsStruct, logg *log.Logger) {
 	logger = logg
 	LampControllerChannel = LampConChannel
 	dbController = dbcon
 }
+
 func Config_Params(scu_sch, per_scudelay string) {
 	scu_scheduling = scu_sch + "s"
 	per_scu_delay = per_scudelay
-
 }
 
 type NBFdn struct {
@@ -77,6 +78,7 @@ type NBFdn struct {
 	Id          string `json:"id"`
 	Zone        string `json:"zone_id"`
 }
+
 type NBData struct {
 	Brightness    string                                  `json:"brightness"`
 	Message       string                                  `json:"msg"`
@@ -97,6 +99,7 @@ type NBData struct {
 	Zone          string                                  `json:"zone_name"`
 	//Group         string                                  `json:"group_id"`
 }
+
 type NBAllLampControlStruct struct {
 	Token  string `json:"token"`
 	Object string `json:"object"`
@@ -104,11 +107,13 @@ type NBAllLampControlStruct struct {
 	Opr    string `json:"opr"`
 	Data   NBData `json:"data"`
 }
+
 type NBResponseStruct struct {
 	Response_status string `json:"response_status"`
 	Data            NBData `json:"data"`
 	End             string `json:"end"`
 }
+
 type GatewayResponse struct {
 	Response_status string `json:"response_status"`
 	//data            interface{} `json:"data"`
@@ -132,6 +137,7 @@ type ScheduleStr struct {
 	Brightness string `json:"brightness"`
 	//Priority   string `json:"priority"`
 }
+
 type SCUVIewStr struct {
 	//Id         string `json:"schedule_id"`
 	SSDate     string `json:"from_date"`
@@ -141,6 +147,7 @@ type SCUVIewStr struct {
 	Brightness string `json:"brightness"`
 	Priority   string `json:"priority"`
 }
+
 type ScheduleResp struct {
 	Response_status string                            `json:"response_status"`
 	Data            map[string]map[string]ScheduleStr `json:"data"`
@@ -232,11 +239,11 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data 
+	//l_data := NBLampStr.Data
 	var NewStatus string
 	if l_brightness != "0" {
 		NewStatus = "1"
-	}else{
+	} else {
 		NewStatus = "0"
 	}
 	l_sgu := NBLampStr.Fdn.Gateway
@@ -265,7 +272,6 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-
 	}
 	if !validateSCU(l_scu) {
 		ans.Response_status = "fail"
@@ -290,7 +296,6 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-
 	}
 	if l_brightness == "" {
 		ans.Response_status = "fail"
@@ -319,17 +324,17 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Levent := l_brightness_i
-         if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	if Levent > 0 {
+		if Levent <= 2 {
+			l_event = "5"
+		} else if Levent > 2 && Levent <= 4 {
+			l_event = "6"
+		} else if Levent > 4 && Levent <= 6 {
+			l_event = "7"
+		} else if Levent > 6 && Levent <= 8 {
+			l_event = "8"
+		}
+	}
 	_, bv := TokenParse_errorChecking(l_token)
 	if bv {
 		var LampController sguUtils.SguUtilsLampControllerStruct
@@ -412,8 +417,8 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 		//LampController.ResponseSend  = make(chan bool)
 		LampController.W = nil
 		LampController.ResponseSend = nil
-		LampControllerChannel <- LampController 
-		tcpUtils.SetTempStatus(l_scu,NewStatus)
+		LampControllerChannel <- LampController
+		tcpUtils.SetTempStatus(l_scu, NewStatus)
 		logger.Println("Lamp event sent to channel")
 		du, _ := time.ParseDuration(per_scu_delay + "s")
 		time.Sleep(du)
@@ -493,9 +498,7 @@ func StreetLampControll(w http.ResponseWriter, r *http.Request) {
 	//wait for response
 	//TBD. Add a timeout here
 	<-LampController.ResponseSend
-
 	*/
-
 }
 
 //struct for json input.
@@ -658,6 +661,7 @@ func validateSGU(p_sgu string) bool {
 		return false
 	}
 }
+
 func validateSCU(p_scu string) bool {
 	if len(p_scu) == 16 {
 		return true
@@ -665,6 +669,7 @@ func validateSCU(p_scu string) bool {
 		return false
 	}
 }
+
 func TokenParse_errorChecking(myToken string) (string, bool) {
 	var uid string
 	/*if tokenMap[myToken]!=1{
@@ -699,7 +704,6 @@ func TokenParse_errorChecking(myToken string) (string, bool) {
 		logger.Println("Couldn't handle this token:", err)
 		return uid, false
 	}
-
 }
 
 //type NBDiscoveryResponseStruct struct {
@@ -818,16 +822,13 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 				logger.Println("response status", ans.Response_status)
 				return
 			} else {
-
 				for rows.Next() {
 					rows.Scan(&sched_id)
 				}
-
 				rows.Close()
 			}
 
 			for sguKey, sguData := range NBsys {
-
 				if sguKey == sguid {
 					for scuKey, scuData := range sguData {
 						scuData["op_mode"] = ""
@@ -847,7 +848,6 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 						delete(NBsys, "gateway1")
 						NBsys[sguid] = sguData
 					}
-
 				} else {
 					for sguKey, sguData := range NBsys {
 						for scuKey, scuData := range sguData {
@@ -866,7 +866,6 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 							} else {
 								sguData[scuid] = scuData
 							}
-
 						}
 						if sguKey == "gateway1" {
 							delete(NBsys, "gateway1")
@@ -874,9 +873,7 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 						} else {
 							NBsys[sguid] = sguData
 						}
-
 					}
-
 				}
 			}
 		}
@@ -907,7 +904,6 @@ func Discovery(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
 }
 
 func chkErr(err error, r *http.ResponseWriter) {
@@ -974,13 +970,13 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 	}
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
-	//l_data := NBLampStr.Data 
+	//l_data := NBLampStr.Data
 	var NewStatus string
 	if l_brightness != "0" {
 		NewStatus = "1"
-	}else{
+	} else {
 		NewStatus = "0"
-	}	
+	}
 
 	l_sgu := NBLampStr.Fdn.Gateway
 	l_scu := NBLampStr.Fdn.Street_lamp
@@ -1008,7 +1004,6 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-
 	}
 	/*	if !validateSCU(l_scu) {
 		ans.Response_status = "fail"
@@ -1072,20 +1067,19 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			w.Write(a)
 		}
 		return
-	}else {
-	Levent := l_brightness_i
-	 if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
-
+	} else {
+		Levent := l_brightness_i
+		if Levent > 0 {
+			if Levent <= 2 {
+				l_event = "5"
+			} else if Levent > 2 && Levent <= 4 {
+				l_event = "6"
+			} else if Levent > 4 && Levent <= 6 {
+				l_event = "7"
+			} else if Levent > 6 && Levent <= 8 {
+				l_event = "8"
+			}
+		}
 	}
 	_, bv := TokenParse_errorChecking(l_token)
 	if bv {
@@ -1121,7 +1115,6 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.Write(a)
 			}
-
 			return
 		}
 
@@ -1172,7 +1165,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						}
 						return
 					}
-					
+
 					//tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
 					//logger.Println("Status Set")
 					LampController.SCUID, err = strconv.ParseUint(scu_id_db_s, 10, 64)
@@ -1191,7 +1184,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					//GetSet field is set to set mode
-					
+
 					LampController.LampEvent |= 0x100
 					LampController.PacketType = 0x3000
 					LampController.ConfigArray = nil
@@ -1202,7 +1195,7 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 					LampController.W = nil
 					LampController.ResponseSend = nil
 					LampControllerChannel <- LampController
-					tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
+					tcpUtils.SetTempStatus(scu_id_db_s, NewStatus)
 					logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
 
 				}
@@ -1219,7 +1212,6 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		//endget the SCU's from DB for the Particular SGU Id
-
 	} else {
 		ans.Response_status = "fail"
 		ans.Data.Message = "Invalid token "
@@ -1232,7 +1224,6 @@ func GatewayStreetLampControll(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
 }
 
 //Group's streetlamp controll
@@ -1278,9 +1269,9 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 	//l_fdn := NBLampStr.Fdn
 	l_brightness := NBLampStr.Data.Brightness
 	var NewStatus string
-	if l_brightness == "0"{
+	if l_brightness == "0" {
 		NewStatus = "0"
-	}else{
+	} else {
 		NewStatus = "1"
 	}
 	//l_data := NBLampStr.Data
@@ -1340,17 +1331,17 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 		return ans
 	}
 	Levent := l_brightness_i
-         if Levent > 0 {
-                        if Levent <= 2 {
-                                l_event = "5"
-                        }else if Levent >2 && Levent<= 4 {
-                                l_event = "6"
-                        }else if Levent > 4 && Levent<= 6 {
-                                l_event = "7"
-                        }else if Levent > 6 && Levent<=8 {
-                                l_event = "8"
-                        }
-                }
+	if Levent > 0 {
+		if Levent <= 2 {
+			l_event = "5"
+		} else if Levent > 2 && Levent <= 4 {
+			l_event = "6"
+		} else if Levent > 4 && Levent <= 6 {
+			l_event = "7"
+		} else if Levent > 6 && Levent <= 8 {
+			l_event = "8"
+		}
+	}
 	var LampController sguUtils.SguUtilsLampControllerStruct
 
 	/*	logger.Println(r.URL)
@@ -1433,18 +1424,14 @@ func GroupStreetLampControll(p_NBLampStr *NBAllLampControlStruct) NBResponseStru
 						time.Sleep(du)
 						logger.Println("sent")
 						LampControllerChannel <- LampController
-						tcpUtils.SetTempStatus(scu_id_db_s,NewStatus)
+						tcpUtils.SetTempStatus(scu_id_db_s, NewStatus)
 						logger.Println("Lamp event sent to channel for SCU Id :", LampController.SCUID, "Of SGU Id", LampController.SGUID)
-
 					}
 				}
 				rows_sgu.Close()
 				// end Select SGU Id for SCU Id from DB
-
 				//GetSet field is set to set mode
-
 			}
-
 			rows.Close()
 			ans.Response_status = "success"
 			ans.Data.Message = ""
@@ -1709,7 +1696,6 @@ func CraeteSchedule(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
 }
 
 // New Login from Inside Data Parameter for North Bound Api.
@@ -1811,7 +1797,6 @@ func NBlogin(w http.ResponseWriter, r *http.Request) {
 			for rows.Next() {
 				rows.Scan(&b_u_name, &b_pwd)
 			}
-
 			rows.Close()
 		}
 	}
@@ -1871,6 +1856,7 @@ func NBlogin(w http.ResponseWriter, r *http.Request) {
 	logger.Println("response status", ans.Response_status)
 	return
 }
+
 func IsSGUInDb(p_sgu string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -1891,12 +1877,12 @@ func IsSGUInDb(p_sgu string) bool {
 					l_resp = false
 				}
 			}
-
 			rows.Close()
 		}
 	}
 	return l_resp
 }
+
 func IsSCUInDb(p_scu string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -1917,12 +1903,12 @@ func IsSCUInDb(p_scu string) bool {
 					l_resp = false
 				}
 			}
-
 			rows.Close()
 		}
 	}
 	return l_resp
 }
+
 func ValidateSystem(p_system string) bool {
 	if p_system == "" || p_system != "5" {
 		return false
@@ -1930,6 +1916,7 @@ func ValidateSystem(p_system string) bool {
 		return true
 	}
 }
+
 func IsGroupInDB(p_group string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -1950,12 +1937,12 @@ func IsGroupInDB(p_group string) bool {
 					l_resp = false
 				}
 			}
-
 			rows.Close()
 		}
 	}
 	return l_resp
 }
+
 func SystemGroupURL(w http.ResponseWriter, r *http.Request) {
 	logger.Println("SystemGroupURL()")
 	var ans NBResponseStruct
@@ -2016,6 +2003,7 @@ func SystemGroupURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
 func AddStreetLampsToGroup(p_NBLampStr *NBAllLampControlStruct) NBResponseStruct {
 	logger.Println("AddStreetLampsToGroup()")
 	var ans NBResponseStruct
@@ -2070,7 +2058,6 @@ func AddStreetLampsToGroup(p_NBLampStr *NBAllLampControlStruct) NBResponseStruct
 			ans.Data.Message = "SCU already in the group"
 			logger.Println("SCU: %s already in the group", l_scu_id)
 			return ans
-
 		}
 	}
 	if dbController.DbConnected {
@@ -2102,11 +2089,10 @@ func AddStreetLampsToGroup(p_NBLampStr *NBAllLampControlStruct) NBResponseStruct
 		ans.Response_status = "success"
 		ans.Data.Message = ""
 		return ans
-
 	}
-
 	return ans
 }
+
 func IsGroupIDInDB(p_group string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -2127,12 +2113,12 @@ func IsGroupIDInDB(p_group string) bool {
 					l_resp = false
 				}
 			}
-
 			rows.Close()
 		}
 	}
 	return l_resp
 }
+
 func IsSCUInGroup(p_group_id, p_scu string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -2153,12 +2139,12 @@ func IsSCUInGroup(p_group_id, p_scu string) bool {
 					l_resp = true
 				}
 			}
-
 			rows.Close()
 		}
 	}
 	return l_resp
 }
+
 func SystemZoneURL(w http.ResponseWriter, r *http.Request) {
 	logger.Println("SystemGroupURL()")
 	var ans NBResponseStruct
@@ -2196,7 +2182,6 @@ func SystemZoneURL(w http.ResponseWriter, r *http.Request) {
 				w.Write(a)
 			}
 			return
-
 		}
 	} else {
 		ans.Response_status = "fail"
@@ -2211,6 +2196,7 @@ func SystemZoneURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
 func AddGatewayToAZone(p_NBLampStr *NBAllLampControlStruct) NBResponseStruct {
 	logger.Println("AddGatewayToAZone()")
 	var ans NBResponseStruct
@@ -2265,7 +2251,6 @@ func AddGatewayToAZone(p_NBLampStr *NBAllLampControlStruct) NBResponseStruct {
 			ans.Data.Message = "SGU already in the group"
 			logger.Println("SGU: %s already in the group", l_sgu_id)
 			return ans
-
 		}
 	}
 	if dbController.DbConnected {
@@ -2297,11 +2282,10 @@ func AddGatewayToAZone(p_NBLampStr *NBAllLampControlStruct) NBResponseStruct {
 		ans.Response_status = "success"
 		ans.Data.Message = ""
 		return ans
-
 	}
-
 	return ans
 }
+
 func IsSGUInZone(p_zone_id, p_sgu string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -2322,12 +2306,12 @@ func IsSGUInZone(p_zone_id, p_sgu string) bool {
 					l_resp = true
 				}
 			}
-
 			rows.Close()
 		}
 	}
 	return l_resp
 }
+
 func IsZoneIDInDB(p_zone string) bool {
 	var l_resp bool
 	if dbController.DbConnected {
@@ -2348,7 +2332,6 @@ func IsZoneIDInDB(p_zone string) bool {
 					l_resp = false
 				}
 			}
-
 			rows.Close()
 		}
 	}
@@ -2421,7 +2404,6 @@ func SetScheduleForScu(w http.ResponseWriter, r *http.Request) {
 				w.Write(a)
 			}
 			return
-
 		}
 		pris := NBLampStr.Data.Priority
 		if pris == "" {
@@ -2511,18 +2493,6 @@ func SetScheduleForScu(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
 
 func SetScheduleForSgu(w http.ResponseWriter, r *http.Request) {
@@ -2591,7 +2561,6 @@ func SetScheduleForSgu(w http.ResponseWriter, r *http.Request) {
 				w.Write(a)
 			}
 			return
-
 		}
 		pris := NBLampStr.Data.Priority
 		if pris == "" {
@@ -2716,18 +2685,6 @@ func SetScheduleForSgu(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
 
 func SetScheduleForZone(w http.ResponseWriter, r *http.Request) {
@@ -2784,7 +2741,6 @@ func SetScheduleForZone(w http.ResponseWriter, r *http.Request) {
 				w.Write(a)
 			}
 			return
-
 		}
 		if !IsZoneIDInDB(sgid) {
 			ans.Response_status = "fail"
@@ -2898,19 +2854,8 @@ func SetScheduleForZone(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
+
 func SetScheduleForGroup(w http.ResponseWriter, r *http.Request) {
 	logger.Println("SetScheduleForGroup()")
 	var LampController sguUtils.SguUtilsLampControllerStruct
@@ -2964,7 +2909,6 @@ func SetScheduleForGroup(w http.ResponseWriter, r *http.Request) {
 				w.Write(a)
 			}
 			return
-
 		}
 		if !IsGroupIDInDB(sgid) {
 			ans.Response_status = "fail"
@@ -3078,19 +3022,8 @@ func SetScheduleForGroup(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
+
 func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 	logger.Println("SetScheduleForGroup()")
 	var ans NBResponseStruct
@@ -3155,7 +3088,6 @@ func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 					w.Write(a)
 				}
 				return
-
 			}
 			if IsSGUInZone(l_zone_id, l_gateway_ids_array[i]) {
 				ans.Response_status = "fail"
@@ -3169,7 +3101,6 @@ func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 					w.Write(a)
 				}
 				return
-
 			}
 		}
 
@@ -3184,7 +3115,6 @@ func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 				w.Write(a)
 			}
 			return
-
 		}
 
 		if !IsZoneIDInDB(l_zone_id) {
@@ -3198,7 +3128,6 @@ func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 				w.Write(a)
 			}
 			return
-
 		}
 		dbController.DbSemaphore.Lock()
 		defer dbController.DbSemaphore.Unlock()
@@ -3206,10 +3135,10 @@ func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 		stmt, err := db.Prepare("Delete from zone_sgu where zid=? and sguid=?")
 		defer stmt.Close()
 		chkErr(err, &w)
+
 		for i := 0; i < len(l_gateway_ids_array); i++ {
 			_, eorr := stmt.Exec(l_zone_id, l_gateway_ids_array[i])
 			chkErr(eorr, &w)
-
 		}
 		//io.WriteString(w, "Saved Successfully!!")
 		ans.Response_status = "Success"
@@ -3237,21 +3166,9 @@ func DeleteGateWaysFromZone(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	//old code
-	//	session, _ := store.Get(r, "auth")
-	//	logger.Println(session.Values["set"])
-	//	if session.Values["set"] == 1 {
-	//		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-	//		return
-	//	} else if session.Values["set"] == nil || session.Values["set"] == 0 {
-	//		http.Redirect(w, r, "../login.html", http.StatusFound)
-	//		return
-	//	}
-
 }
-func GroupView(w http.ResponseWriter, r *http.Request) {
 
+func GroupView(w http.ResponseWriter, r *http.Request) {
 	logger.Println("GroupVIew()")
 	var ans SCUViewResp
 
@@ -3300,7 +3217,6 @@ func GroupView(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("500-internal server error"))
 			} else {
-
 				for rows.Next() {
 					var sid, sst, set, pwm, prt string
 					rows.Scan(&sid, &sst, &set, &pwm, &prt)
@@ -3324,7 +3240,6 @@ func GroupView(w http.ResponseWriter, r *http.Request) {
 				ans.Response_status = "success"
 				ans.End = "end"
 			}
-
 		}
 
 		a, err := json.Marshal(ans)
@@ -3333,20 +3248,16 @@ func GroupView(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 - internal server error"))
 		} else {
-
 			w.Write(a)
 		}
-
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("401 - Invalid token"))
 	}
 	return
-
 }
 
 func ZoneView(w http.ResponseWriter, r *http.Request) {
-
 	logger.Println("ZoneView()")
 	var ans SCUViewResp
 
@@ -3395,7 +3306,6 @@ func ZoneView(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("500-internal server error"))
 			} else {
-
 				for rows.Next() {
 					var sid, sst, set, pwm, prt string
 					rows.Scan(&sid, &sst, &set, &pwm, &prt)
@@ -3419,7 +3329,6 @@ func ZoneView(w http.ResponseWriter, r *http.Request) {
 				ans.Response_status = "success"
 				ans.End = "end"
 			}
-
 		}
 
 		a, err := json.Marshal(ans)
@@ -3428,20 +3337,16 @@ func ZoneView(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 - internal server error"))
 		} else {
-
 			w.Write(a)
 		}
-
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("401 - Invalid token"))
 	}
 	return
-
 }
 
 func SGUView(w http.ResponseWriter, r *http.Request) {
-
 	logger.Println("SGUView()")
 	var ans SCUViewResp
 
@@ -3490,7 +3395,6 @@ func SGUView(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("500-internal server error"))
 			} else {
-
 				for rows.Next() {
 					var sid, sst, set, pwm, prt string
 					rows.Scan(&sid, &sst, &set, &pwm, &prt)
@@ -3514,7 +3418,6 @@ func SGUView(w http.ResponseWriter, r *http.Request) {
 				ans.Response_status = "success"
 				ans.End = "end"
 			}
-
 		}
 
 		a, err := json.Marshal(ans)
@@ -3523,16 +3426,13 @@ func SGUView(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 - internal server error"))
 		} else {
-
 			w.Write(a)
 		}
-
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("401 - Invalid token"))
 	}
 	return
-
 }
 
 func SCUView(w http.ResponseWriter, r *http.Request) {
@@ -3608,7 +3508,6 @@ func SCUView(w http.ResponseWriter, r *http.Request) {
 				ans.Response_status = "success"
 				ans.End = "end"
 			}
-
 		}
 
 		a, err := json.Marshal(ans)
@@ -3617,7 +3516,6 @@ func SCUView(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("500 - internal server error"))
 		} else {
-
 			w.Write(a)
 		}
 
@@ -3675,7 +3573,6 @@ func GetSchedule(w http.ResponseWriter, r *http.Request) {
 				ans.Response_status = "Success"
 
 				for rows.Next() {
-
 					rows.Scan(&id, &sst, &set, &pwm)
 					//sst1, _ := time.ParseInLocation("2006-01-02 15:04:05", sst, loc)
 					//set1, _ := time.ParseInLocation("2006-01-02 15:04:05", set, loc)
@@ -4153,13 +4050,13 @@ func StreetLampInfo(SGUId string) map[string]StreetLampDetails {
 		temp.Location_lng = ln
 		temp.Location_name = l
 		tempStatus := tcpUtils.GetTempStatus(scu)
-                if tempStatus == "0"{
-                        temp.Status = "OFF"
-                }else if  tempStatus == "1"{
-                        temp.Status = "ON"
-                }else{
-                        temp.Status = "UNKNOWN"
-                }
+		if tempStatus == "0" {
+			temp.Status = "OFF"
+		} else if tempStatus == "1" {
+			temp.Status = "ON"
+		} else {
+			temp.Status = "UNKNOWN"
+		}
 
 		/*switch st {
 

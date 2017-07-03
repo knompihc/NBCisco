@@ -7,6 +7,7 @@
  * Copyright and Disclaimer Notice Software:
  **************************************************************************/
 package configure
+
 import (
 	"net/http"
 	/*"encoding/csv"
@@ -14,18 +15,16 @@ import (
 	"io"
 	//"fmt"
 	//"time"
+	"userMgmt"
+
 	_ "github.com/go-sql-driver/mysql"
 )
-func Plot(w http.ResponseWriter, r *http.Request){
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"]==1{
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	}else if session.Values["set"]==nil || session.Values["set"]==0{
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+
+func Plot(w http.ResponseWriter, r *http.Request) {
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	id := r.URL.Query().Get("id")
 	sel := r.URL.Query().Get("sel")
 	sd := r.URL.Query().Get("sd")
@@ -33,35 +32,30 @@ func Plot(w http.ResponseWriter, r *http.Request){
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
-	rows,err:=db.Query("Select (timestamp),"+sel+" from parameters where sgu_id='"+id+"' and timestamp>='"+sd+"' and timestamp<='"+ed+"' order by timestamp desc limit 100")
+	rows, err := db.Query("Select (timestamp)," + sel + " from parameters where sgu_id='" + id + "' and timestamp>='" + sd + "' and timestamp<='" + ed + "' order by timestamp desc limit 100")
 	defer rows.Close()
-	chkErr(err,&w)
-	data:="["
-	fl:=false
-	for rows.Next(){
-		if(fl) {
-			data += ",";
-		}else {
-			fl = true;
+	chkErr(err, &w)
+	data := "["
+	fl := false
+	for rows.Next() {
+		if fl {
+			data += ","
+		} else {
+			fl = true
 		}
-		var ti,val string
-		err=rows.Scan(&ti,&val)
-		data+="{\"ti\":\""+ti+"\",\"val\":\""+val+"\"}"
+		var ti, val string
+		err = rows.Scan(&ti, &val)
+		data += "{\"ti\":\"" + ti + "\",\"val\":\"" + val + "\"}"
 	}
-	data+="]"
+	data += "]"
 	logger.Println(data)
-	io.WriteString(w,data)
+	io.WriteString(w, data)
 }
-func Csv(w http.ResponseWriter, r *http.Request){
-	session, _ := store.Get(r, "auth")
-	logger.Println(session.Values["set"])
-	if session.Values["set"]==1{
-		http.Redirect(w, r, "../adminlogin.html", http.StatusFound)
-		return
-	}else if session.Values["set"]==nil || session.Values["set"]==0{
-		http.Redirect(w, r, "../login.html", http.StatusFound)
+func Csv(w http.ResponseWriter, r *http.Request) {
+	if !userMgmt.IsSessionValid(w, r) {
 		return
 	}
+
 	id := r.URL.Query().Get("id")
 	sel := r.URL.Query().Get("sel")
 	sd := r.URL.Query().Get("sd")
@@ -69,9 +63,9 @@ func Csv(w http.ResponseWriter, r *http.Request){
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
-	rows,err:=db.Query("Select timestamp,"+sel+" from parameters where sgu_id='"+id+"' and timestamp>='"+sd+"' and timestamp<='"+ed+"' order by timestamp desc limit 100")
+	rows, err := db.Query("Select timestamp," + sel + " from parameters where sgu_id='" + id + "' and timestamp>='" + sd + "' and timestamp<='" + ed + "' order by timestamp desc limit 100")
 	defer rows.Close()
-	chkErr(err,&w)
+	chkErr(err, &w)
 	/*ti:=time.Now()
 
 	_, eorr := os.Stat("static/reports")
@@ -90,28 +84,28 @@ func Csv(w http.ResponseWriter, r *http.Request){
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
-*/
-	da:=""
-	fl:=true;
-	for rows.Next(){
-		if !fl{
-			da+=","
-		} else{
-			fl=false
+	*/
+	da := ""
+	fl := true
+	for rows.Next() {
+		if !fl {
+			da += ","
+		} else {
+			fl = false
 		}
-		var ti,val string
-		err=rows.Scan(&ti,&val)
-		da+=ti+","+val
+		var ti, val string
+		err = rows.Scan(&ti, &val)
+		da += ti + "," + val
 		/*starr:=[]string{ti,val}
 		err := writer.Write(starr)
 		if err != nil {
 			logger.Println("Cannot write to file ", err)
 		}*/
 	}
-/*
-	writer.Flush()
-	logger.Println(fname)
-	w.Header().Set("Content-Disposition", "attachment; filename="+fname)
-	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))*/
-	io.WriteString(w,da)
+	/*
+		writer.Flush()
+		logger.Println(fname)
+		w.Header().Set("Content-Disposition", "attachment; filename="+fname)
+		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))*/
+	io.WriteString(w, da)
 }
