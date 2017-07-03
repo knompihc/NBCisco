@@ -9,32 +9,28 @@
 package sguUtils
 
 import (
-	//"fmt"
-	"dbUtils"
 	"encoding/binary"
 	"encoding/json"
 	"log"
 	"net"
 	"net/http"
-	"scuUtils"
 	"strconv"
 	"sync"
-	"tcpUtils"
 	"time"
+
+	"dbUtils"
+	"scuUtils"
+	"tcpUtils"
 )
 
 const (
 	sguTickerTimeInMiliSeconds  = 5000
 	HousekeepingTickerTimeInSec = 120
-	//sguCheckResponseTimeInMiliseconds=1000*5*60
-	NumIterationsOfParsePacket = 3
-	//sguCheckResponseTimeCount = sguCheckResponseTimeInMiliseconds/sguTickerTimeInMiliSeconds
-	MaxNumSGUs          = 100
-	enableLogs          = true
-	enableSemaphoreLogs = false
-	//maxRetry=5
-	//retryDelay="59s"
-	maxRetryHash = 1000
+	NumIterationsOfParsePacket  = 3
+	MaxNumSGUs                  = 100
+	enableLogs                  = true
+	enableSemaphoreLogs         = false
+	maxRetryHash                = 1000
 )
 
 //enums for SGU state
@@ -124,99 +120,54 @@ func (SguUtilsStructPtr *SguUtilsStruct) SGUInitMem() {
 }
 
 func IsSGUinDB(sguID uint64) (int, bool) {
-	if enableSemaphoreLogs {
-		logger.Println("Locking1")
-	}
-
 	SguUtilsSemaphore.Lock()
+	defer SguUtilsSemaphore.Unlock()
 
 	for k := 0; k < NumSGUSinDB; k++ {
 		if SGUIDArray[k] == sguID {
-			SguUtilsSemaphore.Unlock()
-
-			if enableSemaphoreLogs {
-				logger.Println("Unlocked1")
-			}
 			return k, true
 		}
-	}
-
-	SguUtilsSemaphore.Unlock()
-	if enableSemaphoreLogs {
-		logger.Println("Unlocked1")
 	}
 	return -1, false
 }
 
 func IsSGUinRamList(SguUtilsStructPtr *SguUtilsStruct) (int, bool) {
-	if enableSemaphoreLogs {
-		logger.Println("Locking2")
-	}
-
 	SguUtilsSemaphore.Lock()
+	defer SguUtilsSemaphore.Unlock()
 
 	for k := 0; k < CurrentSGUindex; k++ {
-
 		if SguBuffer[k].SGUID == SguUtilsStructPtr.SGUID {
-
 			if (SguBuffer[k].sguState == SGUstateSGUReady) || (SguBuffer[k].sguState == SGUstateSGUDisconnected) {
 
 				if enableLogs {
 					logger.Printf("RAM LIST %d  %d %d\n", k, CurrentSGUindex, SguBuffer[k].SGUID)
 				}
-
-				SguUtilsSemaphore.Unlock()
-				if enableSemaphoreLogs {
-					logger.Println("Unlocked2")
-				}
 				return k, true
 			} else {
-				SguUtilsSemaphore.Unlock()
-				if enableSemaphoreLogs {
+				if enableLogs {
 					logger.Println("SGU in RAM list but state is unexpected")
-					logger.Println("Unlocked2")
 				}
 				return -1, false
 			}
 		}
 	}
-
-	SguUtilsSemaphore.Unlock()
-	if enableSemaphoreLogs {
-		logger.Println("Unlocked2")
-	}
 	return -1, false
 }
 
 func GetSGURamListIndex(SGUID uint64) int {
-	if enableSemaphoreLogs {
-		logger.Println("Locking3")
-	}
-
 	SguUtilsSemaphore.Lock()
+	defer SguUtilsSemaphore.Unlock()
 
 	for k := 0; k < CurrentSGUindex; k++ {
-
 		if SguBuffer[k].SGUID == SGUID {
-
-			SguUtilsSemaphore.Unlock()
-			if enableSemaphoreLogs {
-				logger.Println("Unlocked3")
-			}
 			return k
 		}
-	}
-
-	SguUtilsSemaphore.Unlock()
-	if enableSemaphoreLogs {
-		logger.Println("Unlocked3")
 	}
 	return -1
 }
 
 func (SguUtilsStructPtr *SguUtilsStruct) CloseSGU() {
 	for scuIndex := 0; scuIndex < SguUtilsStructPtr.NumOfSCUsInDb; scuIndex++ {
-
 		if SguUtilsStructPtr.ResponseWriterArray[scuIndex] != nil {
 			SguUtilsStructPtr.ResponseWriterArray[scuIndex] = nil
 			close(SguUtilsStructPtr.ResponseSendChan[scuIndex])
@@ -294,7 +245,6 @@ func (SguUtilsStructPtr *SguUtilsStruct) UpdateSGUscuTimestamps() {
 	MasterLampControllerChan <- LampController
 
 	for k := 0; k < SguUtilsStructPtr.SguTcpUtilsStruct.NumOfSCUs; k++ {
-
 		LampController.SCUID = SguUtilsStructPtr.SguTcpUtilsStruct.SCUIDArray[k]
 		MasterLampControllerChan <- LampController
 	}
@@ -305,16 +255,16 @@ func (SguUtilsStructPtr *SguUtilsStruct) UpdateSGUFirmwareStatus() {
 }
 
 func (SguUtilsStructPtr *SguUtilsStruct) UpdateDBWithLampStatus() {
-	logger.Println("Inside UPDATE SCU STATUS", SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount)
 	if SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount == 0 {
 		return
 	}
 
-	logger.Println("Lam sttus is:", SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount)
+	logger.Println("Lamp status is:", SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount)
 	tempcount := SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount
 	SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount = 0
 
 	DbController.DbSemaphore.Lock()
+	defer DbController.DbSemaphore.Unlock()
 	//create a new transaction
 	_Tx, _Err := DbController.Db.Begin()
 
@@ -328,24 +278,20 @@ func (SguUtilsStructPtr *SguUtilsStruct) UpdateDBWithLampStatus() {
 	if _Err != nil {
 		logger.Println("Error opening a new DB transaction for updating lamp status in DB")
 		logger.Println(_Err)
-		DbController.DbSemaphore.Unlock()
 		return
 	}
-	DbController.DbSemaphore.Unlock()
 
 	qStatement := "insert into scu_status (scu_id, status) values(?,?) " +
 		"on duplicate key update status=?,timestamp=Now()"
 
 	_Stmt, _Err1 := _Tx.Prepare(qStatement)
 
-	//close statement
-	defer _Stmt.Close()
-
 	if _Err1 != nil {
 		logger.Println("Error preparing statement while updating lamp status in DB")
 		logger.Println(_Err1)
 		return
 	}
+	defer _Stmt.Close()
 
 	for k := 0; k < tempcount; k++ {
 		uint64Temp := SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusArray[k]
@@ -354,11 +300,10 @@ func (SguUtilsStructPtr *SguUtilsStruct) UpdateDBWithLampStatus() {
 		//some problem with mysql driver.   status is defined as int(11) and
 		//we are writing a 5 byte number. However, value written in db is 0x7fffffff
 		//Quick fix is only write lower 8 bits. Need to resolve this issue later.
-		//uint64Temp &= 0x00FFFFFFFFFF
 		uint64Temp &= 0x00FF
 		logger.Println("UPDATING STATUS FOR SCUID=", strconv.FormatUint(scuid, 10))
-		//logger.Println("FOR SCUID==",scuid)
-		_, err := _Stmt.Exec(strconv.FormatUint(scuid, 10), strconv.FormatUint(uint64Temp, 10), strconv.FormatUint(uint64Temp, 10))
+		_, err := _Stmt.Exec(strconv.FormatUint(scuid, 10), strconv.FormatUint(uint64Temp, 10),
+			strconv.FormatUint(uint64Temp, 10))
 
 		if err != nil {
 			logger.Println("Error  executing prepared statement while updating lamp status in DB")
@@ -366,12 +311,11 @@ func (SguUtilsStructPtr *SguUtilsStruct) UpdateDBWithLampStatus() {
 	}
 
 	err := _Tx.Commit()
-
 	if err != nil {
 		logger.Println("Error while commiting transaction to DB for updating lamp status in db")
 		_Tx.Rollback()
+		return
 	}
-
 	logger.Println("DONE UPDATION!!")
 }
 
@@ -392,7 +336,6 @@ func (SguUtilsStructPtr *SguUtilsStruct) SGUGetLampStatus() {
 	tempLampControl := SguUtilsLampControllerStruct{PacketType: 0x3000, SGUID: SguUtilsStructPtr.SGUID}
 
 	logger.Println("FOR LAMP STATUS SGUID====", SguUtilsStructPtr.SGUID, " index=", sguIndex)
-	//logger.Println("SCIDSGUARRAY=",SCUIDArray)
 	for k := 0; k < NumOfSCUsInDb[sguIndex]; k++ {
 		tempLampControl.SCUID = SCUIDArray[sguIndex][k]
 		MasterLampControllerChan <- tempLampControl
@@ -409,22 +352,16 @@ func (SguUtilsStructPtr *SguUtilsStruct) SendAlertSMS() {
 	temp1 := SguUtilsStructPtr.SguTcpUtilsStruct.AlertStateOld
 
 	SguUtilsStructPtr.SguTcpUtilsStruct.AlertStateOld = SguUtilsStructPtr.SguTcpUtilsStruct.AlertState
-	//format string here
-
-	//get SGU name
 
 	DbController.DbSemaphore.Lock()
-	//create a new transaction
-	_Tx, _Err := DbController.Db.Begin()
+	defer DbController.DbSemaphore.Unlock()
 
+	_Tx, _Err := DbController.Db.Begin()
 	if _Err != nil {
 		logger.Println("Error opening a new DB transaction for SendAlertSMS")
 		logger.Println(_Err)
-		DbController.DbSemaphore.Unlock()
 		return
-
 	}
-	DbController.DbSemaphore.Unlock()
 
 	qStatement := "select location_name from sgu where sgu_id=?"
 
@@ -435,8 +372,6 @@ func (SguUtilsStructPtr *SguUtilsStruct) SendAlertSMS() {
 		logger.Println(_Err1)
 		return
 	}
-
-	//close statement
 	defer _Stmt.Close()
 
 	var sgu_name string
@@ -562,11 +497,9 @@ func (SguUtilsStructPtr *SguUtilsStruct) HandleSguPackets() {
 								//add current SGU in same location
 								sguIndex, sguInList := IsSGUinRamList(SguUtilsStructPtr)
 								if sguInList {
-
 									if enableLogs {
 										logger.Println("SGU is already in the RAM list")
 									}
-
 									//close down old instance
 									if enableSemaphoreLogs {
 										logger.Println("Locking4")
@@ -587,11 +520,9 @@ func (SguUtilsStructPtr *SguUtilsStruct) HandleSguPackets() {
 									if enableSemaphoreLogs {
 										logger.Println("Unlocked4")
 									}
-
 								} else {
 									//sanity check. Make sure we are not exceeding allocated space
 									if CurrentSGUindex < MaxNumSGUs {
-
 										if enableLogs {
 											logger.Println("adding SGU in the list")
 										}
@@ -608,11 +539,9 @@ func (SguUtilsStructPtr *SguUtilsStruct) HandleSguPackets() {
 										if enableSemaphoreLogs {
 											logger.Println("Unlocked5")
 										}
-
 										if enableLogs {
 											logger.Println("SGU state switched to assigned")
 										}
-
 									} else {
 										logger.Printf("Valid SGU detected but Max Limit of %d is reached", MaxNumSGUs)
 										break
@@ -639,27 +568,25 @@ func (SguUtilsStructPtr *SguUtilsStruct) HandleSguPackets() {
 
 							if sguInList {
 								SguUtilsStructPtr.SguTcpUtilsStruct.NumOfSCUsInDB = NumOfSCUsInDb[sguIndex]
-								logger.Println("Number of SCU in DB=", NumOfSCUsInDb[sguIndex], " for SGUID=", SguUtilsStructPtr.SGUID, " index=", sguIndex)
+								logger.Println("Number of SCU in DB=", NumOfSCUsInDb[sguIndex], " for SGUID=",
+									SguUtilsStructPtr.SGUID, " index=", sguIndex)
 								for k := 0; k < NumOfSCUsInDb[sguIndex]; k++ {
 									SguUtilsStructPtr.SguTcpUtilsStruct.SCUIDinDBArray[k] = SCUIDArray[sguIndex][k]
-									logger.Println("SCUID=", SCUIDArray[sguIndex][k], " for SGUID=", SguUtilsStructPtr.SGUID)
+									logger.Println("SCUID=", SCUIDArray[sguIndex][k], " for SGUID=",
+										SguUtilsStructPtr.SGUID)
 								}
-								//logger.Println("SCIDSGUARRAY=",SCUIDArray)
 								SguUtilsStructPtr.UpdateSGUscuTimestamps()
 								SguUtilsStructPtr.UpdateSGUFirmwareStatus()
 							}
 							SguUtilsStructPtr.sguState = SGUstateSGUReady
 						}
 						fallthrough
-
 					case SGUstateSGUReady:
 						{
 							if !SguUtilsStructPtr.SguTcpUtilsStruct.ConnectedToSGU {
-
 								//SGU is now disconnected. Change state
 								SguUtilsStructPtr.sguState = SGUstateSGUDisconnected
 							} else {
-
 								if SguUtilsStructPtr.SguTcpUtilsStruct.SCUListreceived {
 									SguUtilsStructPtr.UpdateSCUListInDB()
 									SguUtilsStructPtr.SguTcpUtilsStruct.SCUListreceived = false
@@ -668,7 +595,6 @@ func (SguUtilsStructPtr *SguUtilsStruct) HandleSguPackets() {
 								if enableSemaphoreLogs {
 									logger.Println("Locking7")
 								}
-
 								SguUtilsSemaphore.Lock()
 
 								for k := 0; k < SguUtilsStructPtr.SguTcpUtilsStruct.ResponseReceivedCount; k++ {
@@ -691,23 +617,17 @@ func (SguUtilsStructPtr *SguUtilsStruct) HandleSguPackets() {
 						}
 					case SGUstateSGUnotInList:
 						{
-
 						}
 					case SGUstateSGUDisconnected:
 						{
-
 						}
-
 					}
 				}
 			}
-
 		case <-SguUtilsStructPtr.SguClose:
 			{
-
 				//time to close timer and SGU
 				SguUtilsStructPtr.SguTicker.Stop()
-				//SguUtilsStructPtr.SguTicker.Close()
 				SguUtilsStructPtr = nil
 				return
 			}
@@ -716,8 +636,7 @@ func (SguUtilsStructPtr *SguUtilsStruct) HandleSguPackets() {
 }
 
 func InitSGUIDsfromDB() {
-
-	//This table is update in runtime. so need synchronization
+	//This table is updated in runtime. so need synchronization
 
 	var sguID uint64
 
@@ -754,7 +673,7 @@ func InitSGUIDsfromDB() {
 }
 
 func AddSGUToDB(sguID uint64) {
-	//This table is update in runtime. so need synchronization
+	//This table is updated in runtime. so need synchronization
 
 	if DbController.DbConnected {
 		DbController.DbSemaphore.Lock()
@@ -808,10 +727,11 @@ func AddSGUToDB(sguID uint64) {
 }
 
 func AddSCUToDB(sguID uint64, scuID uint64) {
-	//This table is update in runtime. so need synchronization
+	//This table is updated in runtime. so need synchronization
 
 	if DbController.DbConnected {
 		DbController.DbSemaphore.Lock()
+		defer DbController.DbSemaphore.Unlock()
 
 		//create scu table if not already created
 		qStatement := "insert into scu (sgu_id, scu_id) values (" +
@@ -842,6 +762,7 @@ func AddSCUToDB(sguID uint64, scuID uint64) {
 			return
 		}
 
+		defer DbController.Stmt.Close()
 		if enableLogs {
 			logger.Println("Executing statement for inserting SCU in DB")
 		}
@@ -856,9 +777,6 @@ func AddSCUToDB(sguID uint64, scuID uint64) {
 		} else {
 			DbController.Tx.Commit()
 		}
-
-		DbController.Stmt.Close()
-		DbController.DbSemaphore.Unlock()
 	}
 }
 
@@ -870,7 +788,6 @@ func (SguUtilsStructPtr *SguUtilsStruct) IsSCUinDB(scuID uint64) (int, bool) {
 				return k, true
 			}
 		}
-
 		//sgu found but no scu found
 		return -1, false
 	} else {
@@ -903,14 +820,14 @@ func GetSCUsForAllSGUs() {
 }
 
 func InitSCUIDsFromDB(sguIndex int) {
-	//This table is update in runtime. so need synchronization
-	//TBD Add semaphore
+	//This table is updated in runtime, so need synchronization
 
 	var scuID uint64
 
 	if DbController.DbConnected {
 
 		DbController.DbSemaphore.Lock()
+		defer DbController.DbSemaphore.Unlock()
 
 		SCUsFromDB := 0
 
@@ -921,6 +838,7 @@ func InitSCUIDsFromDB(sguIndex int) {
 			logger.Println(err)
 		}
 
+		defer rows.Close()
 		for rows.Next() {
 			err := rows.Scan(&scuID)
 			if err != nil {
@@ -931,9 +849,6 @@ func InitSCUIDsFromDB(sguIndex int) {
 				SCUsFromDB++
 			}
 		}
-
-		rows.Close()
-		DbController.DbSemaphore.Unlock()
 		if NumOfSCUsInDb[sguIndex] != SCUsFromDB {
 			logger.Printf("Found %d SCUs in database for sgu id = %8x\n", SCUsFromDB, SGUIDArray[sguIndex])
 			NumOfSCUsInDb[sguIndex] = SCUsFromDB
@@ -950,7 +865,6 @@ func SGUHouseKeeping() {
 				InitSGUIDsfromDB()
 				GetSCUsForAllSGUs()
 			}
-
 		case <-HousekeepingTickerChan:
 			{
 				HousekeepingTicker.Stop()
@@ -977,14 +891,6 @@ func HandleSguConnections(sguChan chan net.Conn, MasterdbController dbUtils.DbUt
 	InitSGUIDsfromDB()
 
 	GetSCUsForAllSGUs()
-
-	//debug hack.
-	//t := new(SguUtilsStruct)
-	//t.SGUID=57381672663091
-	//t.SguTcpUtilsStruct.AlertState = 7
-	//t.SguTcpUtilsStruct.TimeStampHi=0x3230313531323138
-	//t.SguTcpUtilsStruct.TimeStampLo=0x313131333030
-	//t.SendAlertSMS()
 
 	//create housekeeping ticker
 	HousekeepingTicker = time.NewTicker(time.Millisecond * 1000 * HousekeepingTickerTimeInSec)
@@ -1036,15 +942,12 @@ func HandleSguConnections(sguChan chan net.Conn, MasterdbController dbUtils.DbUt
 					for k := 0; k < MaxNumSGUs; k++ {
 						SCUIDArray[k] = nil
 					}
-
 					logger.Println("closing  sgu handler  loop")
-					//SguBuffer = nil
 					return
 				}
 			}
 		}
 	}()
-
 	return done
 }
 
@@ -1054,14 +957,13 @@ func (SguUtilsStructPtr *SguUtilsStruct) SendWithRetry(OutputPacketType int, SCU
 	attempt := 0
 	strSCU := strconv.FormatUint(SCUID, 10)
 	init := SguUtilsStructPtr.SguTcpUtilsStruct.RetryHashSCU[strSCU]
-	//strHash:=strconv.Itoa(temp.PacketType)+"#"+strconv.FormatUint(temp.SCUID,10)+"#"+strconv.Itoa(getSet)+"#"+strconv.FormatUint(((temp.LampEvent) & 0x0FF),10)
-	strHash := strconv.Itoa(OutputPacketType) + "#" + strconv.FormatUint(SCUID, 10) + "#" + strconv.Itoa(gs) + "#" + strconv.Itoa(((StatusByte) & 0x0FF))
-	/*if ((StatusByte) & 0x0FF)==1{
-		strHash=strconv.Itoa(OutputPacketType)+"#"+strconv.FormatUint(SCUID,10)+"#"+strconv.Itoa(gs)+"#"+strconv.Itoa(9)
-	}*/
+	strHash := strconv.Itoa(OutputPacketType) + "#" + strconv.FormatUint(SCUID, 10) + "#" +
+		strconv.Itoa(gs) + "#" + strconv.Itoa(((StatusByte) & 0x0FF))
+
 	logger.Println("Rec. for sending 3000 Packet ")
 	for SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash] == 1 && attempt < maxRetry {
-		logger.Println("Try: ", attempt+1, ", for SGUID=", SguUtilsStructPtr.SGUID, ", Packet Type=", OutputPacketType, ", SCUID=", SCUID, ", Status=", StatusByte, ", Hash=", strHash)
+		logger.Println("Try: ", attempt+1, ", for SGUID=", SguUtilsStructPtr.SGUID, ", Packet Type=",
+			OutputPacketType, ", SCUID=", SCUID, ", Status=", StatusByte, ", Hash=", strHash)
 		SguIndex := GetSGURamListIndex(SguUtilsStructPtr.SGUID)
 		if SguIndex == -1 {
 			logger.Printf("Event specified for non existent SGU  %d\n", SguUtilsStructPtr.SGUID)
@@ -1093,7 +995,8 @@ func HandleLampEvents(lampControllerChan chan SguUtilsLampControllerStruct) chan
 			case temp := <-lampControllerChan:
 				{
 					//a new SGU lamp event.
-					logger.Printf("New Lamp Event, packetType = %4.4x, SGUID=%d, SCUID=%d %d\n", temp.PacketType, temp.SGUID, temp.SCUID, temp.LampEvent)
+					logger.Printf("New Lamp Event, packetType = %4.4x, SGUID=%d, SCUID=%d %d\n",
+						temp.PacketType, temp.SGUID, temp.SCUID, temp.LampEvent)
 
 					SguIndex := GetSGURamListIndex(temp.SGUID)
 					if SguIndex == -1 {
@@ -1101,7 +1004,6 @@ func HandleLampEvents(lampControllerChan chan SguUtilsLampControllerStruct) chan
 					} else {
 
 						SguUtilsStructPtr := SguBuffer[SguIndex]
-
 						SguUtilsStructPtr.SguUtilsStructSemaphore.Lock()
 						//defer SguUtilsStructPtr.SguUtilsStructSemaphore.Unlock()
 						if enableSemaphoreLogs {
@@ -1143,9 +1045,7 @@ func HandleLampEvents(lampControllerChan chan SguUtilsLampControllerStruct) chan
 									}
 									if getSet != 0 {
 										strHash := strconv.Itoa(temp.PacketType) + "#" + strconv.FormatUint(temp.SCUID, 10) + "#" + strconv.Itoa(getSet) + "#" + strconv.Itoa(((temp.LampEvent) & 0x0FF))
-										/*if ((temp.LampEvent) & 0x0FF)==1{
-											strHash=strconv.Itoa(temp.PacketType)+"#"+strconv.FormatUint(temp.SCUID,10)+"#"+strconv.Itoa(getSet)+"#"+strconv.Itoa(9)
-										}*/
+
 										if len(SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash) > maxRetryHash {
 											logger.Println("Too many Packets, flushing retry Hash for SGUID=", temp.SGUID)
 											SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash = make(map[string]int)
@@ -1161,18 +1061,13 @@ func HandleLampEvents(lampControllerChan chan SguUtilsLampControllerStruct) chan
 									}
 									du, _ := time.ParseDuration(per_scu_delay)
 									time.Sleep(du)
-									//SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(temp.PacketType, temp.SCUID, temp.LampEvent,temp.ConfigArray,temp.ConfigArrayLength)
 								}
-
 							} else {
 								SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(temp.PacketType, temp.SCUID, temp.LampEvent, temp.ConfigArray, temp.ConfigArrayLength)
 							}
-							//SguUtilsStructPtr.SendResponseToUI(scuIndex, temp.LampEvent ^ 1)
-
 						} else {
 							logger.Printf("Event specified when SGU not ready %d  %d \n", temp.SGUID, SguBuffer[SguIndex].sguState)
 						}
-
 						SguUtilsStructPtr.SguUtilsStructSemaphore.Unlock()
 						if enableSemaphoreLogs {
 							logger.Println("Unlocked Semaphore after sending")
