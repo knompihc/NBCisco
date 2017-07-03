@@ -9,8 +9,6 @@
 package mapview
 
 import (
-	//"fmt"
-	"dbUtils"
 	"encoding/json"
 	"io"
 	"log"
@@ -18,7 +16,8 @@ import (
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
-	//"time"
+
+	"dbUtils"
 	"sguUtils"
 	"tcpUtils"
 	"userMgmt"
@@ -77,34 +76,6 @@ type gro struct {
 	val resgrp
 }
 
-/*func main() {
-	logger.Println("starting google map view")
-	http.Handle("/",http.FileServer(http.Dir("static")))
-	http.HandleFunc("/showmap",showmap)
-	http.ListenAndServe(":8080", nil)
-}*/
-/*
-<select>
-<option value="volvo">Volvo</option>
-<option value="saab">Saab</option>
-<option value="opel">Opel</option>
-<option value="audi">Audi</option>
-</select>*/
-/*func mapview(w http.ResponseWriter, r *http.Request){
-	db, err := sql.Open("mysql", "root:pass@/demo?charset=utf8")
-	defer db.Close()
-	chkErr(err,&w)
-	rows,err:=db.Query("Select location_name from location")
-	defer rows.Close()
-	script:= "<select onchange='initMap()' id='locdd'><option value='default'>Select Location</option>"
-	for rows.Next(){
-		var loc_name string
-		err=rows.Scan(&loc_name)
-		script+="<option value="+loc_name+">"+loc_name+"</option>"
-	}
-	script+="</select>"
-	io.WriteString(w,script)
-}*/
 var dbController dbUtils.DbUtilsStruct
 var logger *log.Logger
 
@@ -122,9 +93,11 @@ func Showmap(w http.ResponseWriter, r *http.Request) {
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
-	rows, err := db.Query("Select * from scu where sgu_id in (select sguid from zone_sgu where zid='" + zid + "') and location_lat is NOT NULL and location_lng is NOT NULL")
-	defer rows.Close()
+	rows, err := db.Query("Select * from scu where sgu_id in (select sguid from zone_sgu where zid='" + zid + "') " +
+		"and location_lat is NOT NULL and location_lng is NOT NULL")
 	chkErr(err, &w)
+	defer rows.Close()
+
 	data := "["
 	fl := false
 	for rows.Next() {
@@ -137,9 +110,11 @@ func Showmap(w http.ResponseWriter, r *http.Request) {
 		var lat, lng float64
 		var locname string
 		err = rows.Scan(&scu, &sgu, &locname, &lat, &lng)
-		trows, err := db.Query("Select status from scu_status where scu_id='" + strconv.FormatUint(scu, 10) + "' order by timestamp desc limit 1")
-		defer trows.Close()
+		trows, err := db.Query("Select status from scu_status where scu_id='" +
+			strconv.FormatUint(scu, 10) + "' order by timestamp desc limit 1")
 		chkErr(err, &w)
+		defer trows.Close()
+
 		var st uint64
 		st = 10
 		for trows.Next() {
@@ -163,7 +138,8 @@ func Showmap(w http.ResponseWriter, r *http.Request) {
 		lngs := strconv.FormatFloat(lng, 'f', -1, 64)
 		scus := strconv.FormatUint(scu, 10)
 		sgus := strconv.FormatUint(sgu, 10)
-		data += "{\"lat\":\"" + lats + "\",\"lng\":\"" + lngs + "\",\"sgu\":\"" + sgus + "\",\"scu\":\"" + scus + "\",\"status\":\"" + status + "\"}"
+		data += "{\"lat\":\"" + lats + "\",\"lng\":\"" + lngs + "\",\"sgu\":\"" + sgus + "\",\"scu\":\"" +
+			scus + "\",\"status\":\"" + status + "\"}"
 	}
 	data += "]"
 	logger.Println(data)
@@ -179,25 +155,22 @@ func Getzone(w http.ResponseWriter, r *http.Request) {
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
 	rows, err := db.Query("Select id,name from zone")
-	defer rows.Close()
 	chkErr(err, &w)
+	defer rows.Close()
+
 	data := []Zone{}
 	for rows.Next() {
 		var id, name string
 		rows.Scan(&id, &name)
 		tm := Zone{}
-
 		tm.Name = name
 		tm.Id = id
 		data = append(data, tm)
 	}
 	logger.Println(data)
-	a, err := json.Marshal(data)
-	if err != nil {
-		logger.Println("Error in json.Marshal")
-		logger.Println(err)
+	if a, err := json.Marshal(data); err != nil {
+		logger.Println("Error in json.Marshal: ", err)
 	} else {
-		//logger.Println(a)
 		w.Write(a)
 	}
 }
@@ -218,18 +191,14 @@ func Getgroup(w http.ResponseWriter, r *http.Request) {
 		var id, name string
 		rows.Scan(&id, &name)
 		tm := Group{}
-
 		tm.Name = name
 		tm.Id = id
 		data = append(data, tm)
 	}
 	logger.Println(data)
-	a, err := json.Marshal(data)
-	if err != nil {
-		logger.Println("Error in json.Marshal")
-		logger.Println(err)
+	if a, err := json.Marshal(data); err != nil {
+		logger.Println("Error in json.Marshal: ", err)
 	} else {
-		//logger.Println(a)
 		w.Write(a)
 	}
 }
@@ -242,17 +211,19 @@ func Getall(w http.ResponseWriter, r *http.Request) {
 	db := dbController.Db
 	dbController.DbSemaphore.Lock()
 	defer dbController.DbSemaphore.Unlock()
-	rows, err := db.Query("Select zone_sgu.zid,zone.name,sgu.sgu_id,sgu.location_name,scu.scu_id,scu.location_name,scu.location_lat,scu.location_lng,scu_status.status,scu_status.timestamp from zone_sgu inner join zone on zone.id=zone_sgu.zid inner join sgu on sgu.sgu_id=zone_sgu.sguid inner join scu on scu.sgu_id=zone_sgu.sguid inner join scu_status on scu_status.scu_id=scu.scu_id")
-	defer rows.Close()
+	rows, err := db.Query("Select zone_sgu.zid,zone.name,sgu.sgu_id,sgu.location_name,scu.scu_id," +
+		"scu.location_name,scu.location_lat,scu.location_lng,scu_status.status,scu_status.timestamp " +
+		"from zone_sgu inner join zone on zone.id=zone_sgu.zid inner join sgu on sgu.sgu_id=zone_sgu.sguid" +
+		" inner join scu on scu.sgu_id=zone_sgu.sguid inner join scu_status on scu_status.scu_id=scu.scu_id")
 	chkErr(err, &w)
+	defer rows.Close()
+
 	data := []res{}
 	mz := make(map[string]res)
 	mg := make(map[string]sgu)
 	mc := make(map[string]scu)
 	cmz := make(map[string]int)
 	cmg := make(map[string]int)
-	//loc, _ := time.LoadLocation("UTC")
-	//tf,_:=time.ParseInLocation("01/02/2006 3:04 PM",from,loc)
 	for rows.Next() {
 		var zid, zname, sguid, sguname, scuid, scuname, lat, lng, ts string
 		var st uint64
@@ -272,31 +243,7 @@ func Getall(w http.ResponseWriter, r *http.Request) {
 		} else {
 			status = "BLACK"
 		}
-		/*currtime := time.Now().Local().Add(-60 * time.Minute)
-		  currtime = currtime.In(loc)
-		  logger.Println("current time :",currtime)
-		  layOut := "2006-01-02 15:04:05"
-		  timeStamp, err := time.Parse(layOut, ts)
-		  if err != nil {
-		   logger.Println("error while parsing timeStamp:",err)
-		  }
-		  logger.Println("ts=", timeStamp)*/
-		/*	currtime:=time.Now().Add(-60*time.Minute)
-			logger.Println("ts=",ts)
-			statime,_:=time.ParseInLocation("2006-01-02 15:04:05",ts,loc)
-			//statime := timeStamp.In(loc)
-			logger.Println("saved time=",statime)
-			if currtime.After(statime){
-				sta=3
-				logger.Println("Not latest, SGU might be off!!")
-			}
-			if sta==0{
-				status="RED"
-			}else if sta==1 {
-				status="GREEN"
-			}else if sta==2 {
-				status="BLACK"
-			}*/
+
 		if cmz[zid] != 1 {
 			tz := res{}
 			tz.Zid = zid
@@ -336,8 +283,6 @@ func Getall(w http.ResponseWriter, r *http.Request) {
 			mc[scuid] = tc
 			cmg[sguid] = 1
 			cmz[zid] = 1
-			//logger.Println("for zid=",zid," sguid=",sguid," scuid=",scuid," len=",len(tg.Scus)," scus=",(tg.Scus))
-
 		} else if cmg[sguid] != 1 {
 			tz := mz[zid]
 			tg := sgu{}
@@ -403,8 +348,6 @@ func Getall(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			/*tg.Scus = append(tg.Scus,tc)
-			tz.Sgus = append(tz.Sgus,tg)*/
 			tz.Tag.Tag = (tot)
 			mg[sguid] = tg
 			mz[zid] = tz
@@ -416,16 +359,10 @@ func Getall(w http.ResponseWriter, r *http.Request) {
 	for _, re := range mz {
 		data = append(data, re)
 	}
-	//logger.Println(data)
-	a, err := json.Marshal(data)
-	//logger.Println(string(a))
-	if err != nil {
-		logger.Println("Error in json.Marshal")
-		logger.Println(err)
+	if a, err := json.Marshal(data); err != nil {
+		logger.Println("Error in json.Marshal: ", err)
 	} else {
-		//logger.Println(string(a))
 		w.Write(a)
-
 	}
 }
 
@@ -436,5 +373,3 @@ func chkErr(err error, r *http.ResponseWriter) {
 		//panic(err);
 	}
 }
-
-//[{Bangalore 3 [{dd 1 [{dsfgfg 12.83811119 77.67800555 1}]} {dd 1 [{dsfgfg 12.83811119 77.67800555 1} {d 12.83911119 77.67800555 2}]} {dd 1 [{dsfgfg 12.83811119 77.67800555 1} {d 12.83911119 77.67800555 2} {ff 12.83711119 77.67500555 3}]} {dd 1 [{dsfgfg 12.83811119 77.67800555 1} {d 12.83911119 77.67800555 2} {ff 12.83711119 77.67500555 3} {ff 12.83511119 77.67600555 4}]} {ftr 3 [{ff 44 44 11}]} {ftr 3 [{ff 44 44 11} { 0 0 19}]}]}]
