@@ -4224,7 +4224,7 @@ func StreetLampInfo(SGUId string) map[string]StreetLampDetails {
 		}*/
 		ans[scu] = temp
 	}
-	status.RUnlock()
+	
 	rows.Close()
 	//ans = LampDetails
 	logger.Println("Ans is:", ans)
