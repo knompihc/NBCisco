@@ -147,7 +147,7 @@ func runServer(port string) {
 		if eorr!=nil{
 			logger.Println(eorr)
 		}
-		logger.Println("Starting Server!!!")
+		logger.Println("Starting Server on port ", port)
 		cmd:=exec.Command("./Havels")
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -229,8 +229,8 @@ func main() {
 	}else {
 		logger =log.New(os.Stdout, "runServer: ", log.Lshortfile)
 	}
-	//port := os.Getenv("PORT")
-	port := "8080"
+	port := os.Getenv("PORT")
+	logger.Println("port value is ",port)
 	go startCron(port)
 	server, err = socketio.NewServer(nil)
 	if err != nil {
