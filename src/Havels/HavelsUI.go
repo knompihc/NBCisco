@@ -3367,18 +3367,18 @@ func main() {
 		logger.Println("error in sync SCU Status from DB")
 	}
 	//err = http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
-go func(){
+	 func(){
 	 err1 := http.ListenAndServe(":"+port, context.ClearHandler(http.DefaultServeMux))
 	if err1 != nil {
 		logger.Println("Failed to start http server")
 		logger.Print(err.Error())
 	}
   }()
-	err2 := http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
-	if err2 != nil {
-                logger.Println("Failed to start https  server")
-                logger.Print(err.Error())
-        }
+	//err2 := http.ListenAndServeTLS(":443", "./keys/nb.pem", "./keys/nb.key", nil)
+	//if err2 != nil {
+          //      logger.Println("Failed to start https  server")
+           //     logger.Print(err.Error())
+       // }
 
 	close(StartSendSMSThreadDone)
 	close(HandleSguConnectionsDone)
