@@ -1218,7 +1218,8 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)   ParseInputPacket() {
                 TcpUtilsStructPtr.OutputSeqNumber = TcpUtilsStructPtr.InputSeqNumber;
                 logger.Println("Received packet type 0x0001 successfully");
                 TcpUtilsStructPtr.SendResponsePacket(0x11,0,0,nil,0);
-                break;
+                TcpUtilsStructPtr.SCUListreceived = true
+		break;
             }
             case 0x0002: {
 		    TcpUtilsStructPtr.Is_updating=false
