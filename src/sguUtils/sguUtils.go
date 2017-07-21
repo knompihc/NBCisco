@@ -429,7 +429,6 @@ func (SguUtilsStructPtr *SguUtilsStruct)UpdateSGUFirmwareStatus() {
 
 /*****************************************************************/
 func (SguUtilsStructPtr *SguUtilsStruct)UpdateDBWithLampStatus() {
-	logger.Println("Inside UPDATE SCU STATUS",SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount)
 	if (SguUtilsStructPtr.SguTcpUtilsStruct.LampStatusCount == 0) {
 		return
 	}
@@ -562,7 +561,6 @@ func (SguUtilsStructPtr *SguUtilsStruct)SGUGetLampStatus() {
 
 /*****************************************************************/
 func (SguUtilsStructPtr *SguUtilsStruct)SendAlertSMS() {
-	logger.Println("old state=",SguUtilsStructPtr.SguTcpUtilsStruct.AlertStateOld)
 	if (SguUtilsStructPtr.SguTcpUtilsStruct.AlertState == SguUtilsStructPtr.SguTcpUtilsStruct.AlertStateOld) {
 		return
 	}
@@ -693,7 +691,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 
 
 	for {
-		SguUtilsStructPtr.SguTcpUtilsStruct.SCUListreceived = true
+		//SguUtilsStructPtr.SguTcpUtilsStruct.SCUListreceived = true
 		select {
 
 		case  <-SguUtilsStructPtr.SguTicker.C:  {
@@ -897,7 +895,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 					}
 
   					SguUtilsSemaphore.Unlock()
-					SguUtilsStructPtr.SendAlertSMS()
+				//	SguUtilsStructPtr.SendAlertSMS()
 				//	SguUtilsStructPtr.SGUGetLampStatus()
 					SguUtilsStructPtr.UpdateDBWithLampStatus()
 				}
@@ -1425,16 +1423,17 @@ func	HandleSguConnections(sguChan chan net.Conn,  MasterdbController dbUtils.DbU
 
 //Send Packet With RETRY
 func (SguUtilsStructPtr *SguUtilsStruct)SendWithRetry(OutputPacketType int, SCUID uint64,  StatusByte int, expression   []byte, expressionLength int,gs int){
-	attempt:=0
-	strSCU:=strconv.FormatUint(SCUID,10)
-	init:=SguUtilsStructPtr.SguTcpUtilsStruct.RetryHashSCU[strSCU]
+	//attempt:=0
+	//strSCU:=strconv.FormatUint(SCUID,10)
+	//init:=SguUtilsStructPtr.SguTcpUtilsStruct.RetryHashSCU[strSCU]
 	//strHash:=strconv.Itoa(temp.PacketType)+"#"+strconv.FormatUint(temp.SCUID,10)+"#"+strconv.Itoa(getSet)+"#"+strconv.FormatUint(((temp.LampEvent) & 0x0FF),10)
 	strHash:=strconv.Itoa(OutputPacketType)+"#"+strconv.FormatUint(SCUID,10)+"#"+strconv.Itoa(gs)+"#"+strconv.Itoa(((StatusByte) & 0x0FF))
 	/*if ((StatusByte) & 0x0FF)==1{
 		strHash=strconv.Itoa(OutputPacketType)+"#"+strconv.FormatUint(SCUID,10)+"#"+strconv.Itoa(gs)+"#"+strconv.Itoa(9)
 	}*/
 	logger.Println("Rec. for sending 3000 Packet ")
-	for SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash]==1&&attempt<maxRetry{
+	SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(OutputPacketType, SCUID,StatusByte ,expression,expressionLength)
+	/*for SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash]==1&&attempt<maxRetry{
 		logger.Println("Try: ",attempt+1,", for SGUID=",SguUtilsStructPtr.SGUID,", Packet Type=",OutputPacketType,", SCUID=",SCUID,", Status=",StatusByte,", Hash=",strHash)
 		SguIndex := GetSGURamListIndex(SguUtilsStructPtr.SGUID)
 		if SguIndex == -1 {
@@ -1449,7 +1448,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)SendWithRetry(OutputPacketType int, SCUI
 		du, _ := time.ParseDuration(retryDelay)
 		time.Sleep(du)
 		attempt++;
-	}
+	}*/
 	logger.Println("Exiting with Hash =",strHash," Value =",SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash])
 }
 /************************************************************************************************************/
