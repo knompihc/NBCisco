@@ -3469,8 +3469,8 @@ func SCUView(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*
-func GetSchedule(w http.ResponseWriter, r *http.Request) {
+
+func GetSchedules(w http.ResponseWriter, r *http.Request) {
 	logger.Println("GetSchedule()")
 	var ans ScheduleResp
 
@@ -3553,7 +3553,7 @@ func GetSchedule(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("401 - Invalid token"))
 	}
 	return
-}*/
+}
 
 func CreateZone(w http.ResponseWriter, r *http.Request) {
 	logger.Println("CreateZone()")
