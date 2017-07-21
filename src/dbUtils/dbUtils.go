@@ -605,7 +605,8 @@ func (DbUtilsStructPtr	*DbUtilsStruct) DbUtilsInit(logg *log.Logger) {
 
 		} else {
 			//db in oragon
-			dbinfo = "HavellsDBAdmin:HavellsCCMS420@tcp(mysql.cqwf1pvghoch.us-west-2.rds.amazonaws.com:3306)/HavellsCCMSDatabase"
+			//dbinfo = "HavellsDBAdmin:HavellsCCMS420@tcp(mysql.cqwf1pvghoch.us-west-2.rds.amazonaws.com:3306)/HavellsCCMSDatabase"
+			dbinfo = "HavellsDBAdmin:HavellsCCMS420@tcp(mysql.cqwf1pvghoch.us-west-2.rds.amazonaws.com:3306)/HavellsCCMSTest"
 		}
 		//use command below to access remote db from local machine
 		//mysql --user=HavellsDBAdmin --password=HavellsCCMS420 --host=mysql.cqwf1pvghoch.us-west-2.rds.amazonaws.com --database=HavellsCCMSDatabase
