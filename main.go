@@ -143,7 +143,7 @@ func runServer(port string) {
 	s := string(out[:])
 	if len(s)==0{
 		logger.Println("Build Started!!!")
-		_,eorr:=exec.Command("/usr/local/go/bin/go","build","Havels").Output()
+		_,eorr:=exec.Command("go","build","-o", "Havels","src/Havels/HavelsUI.go").Output()
 		if eorr!=nil{
 			logger.Println(eorr)
 		}
@@ -229,7 +229,8 @@ func main() {
 	}else {
 		logger =log.New(os.Stdout, "runServer: ", log.Lshortfile)
 	}
-	port := os.Getenv("PORT")
+	//port := os.Getenv("PORT")
+	port := "8080"
 	go startCron(port)
 	server, err = socketio.NewServer(nil)
 	if err != nil {
