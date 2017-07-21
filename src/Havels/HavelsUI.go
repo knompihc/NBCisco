@@ -3358,6 +3358,7 @@ func main() {
 	http.HandleFunc("/system/gateway/attachedSchedule", NBApis.SGUView)
 	http.HandleFunc("/system/zone/attachedSchedule", NBApis.ZoneView)
 	http.HandleFunc("/system/group/attachedSchedule", NBApis.GroupView)
+	 http.HandleFunc("/system/schedules", NBApis.GetSchedules)
 	http.HandleFunc("/system/delete/group", NBApis.DeleteLamp)
 	//logger.Println("Starting HTTP Server")
 	//downloadSguRepo()

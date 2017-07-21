@@ -168,7 +168,11 @@ type ScheduleResp struct {
 	Data map[string]map[string]ScheduleStr `json:"data"`
 	//End             string                            `json:"end"`
 }
-
+type AllScheduleResp struct {
+	Response_status string                            `json:"response_status"`
+	Data            map[string]map[string]ScheduleStr `json:"data"`
+	End             string                            `json:"end"`
+}
 type SCUViewResp struct {
 	Response_status string                           `json:"response_status"`
 	Data            map[string]map[string]SCUVIewStr `json:"data"`
@@ -3469,10 +3473,10 @@ func SCUView(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*
-func GetSchedule(w http.ResponseWriter, r *http.Request) {
+
+func GetSchedules(w http.ResponseWriter, r *http.Request) {
 	logger.Println("GetSchedule()")
-	var ans ScheduleResp
+	var ans AllScheduleResp
 
 	parse_err := r.ParseForm()
 	if parse_err != nil {
@@ -3553,7 +3557,7 @@ func GetSchedule(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("401 - Invalid token"))
 	}
 	return
-}*/
+}
 
 func CreateZone(w http.ResponseWriter, r *http.Request) {
 	logger.Println("CreateZone()")
@@ -4025,72 +4029,108 @@ func StreetLampInfo(SGUId string) map[string]StreetLampDetails {
 }
 
 func DeleteLamp(w http.ResponseWriter, r *http.Request) {
-	logger.Println("SystemGroupURL()")
-	var ans NBResponseStruct
-	//fmt.Println("ans", ans)
+        logger.Println("SystemGroupURL()")
+        var ans NBResponseStruct
+        //fmt.Println("ans", ans)
 
-	parse_err := r.ParseForm()
-	if parse_err != nil {
-		logger.Println(parse_err)
-	}
-	var NBLampStr NBAllLampControlStruct
-	if len(r.FormValue("token")) == 0 {
-		decoder := json.NewDecoder(r.Body)
-		logger.Println(decoder)
-		err := decoder.Decode(&NBLampStr)
-		if err != nil {
-			logger.Println(err)
-		}
-	} else {
-		NBLampStr.Token = r.FormValue("token")
-		NBLampStr.Opr = r.FormValue("opr")
-	}
-	l_token := NBLampStr.Token
-	fmt.Println("l_token", l_token)
-	l_opr := NBLampStr.Opr
-	_, bv := TokenParse_errorChecking(l_token)
-	if bv {
-		logger.Println("operation is:", l_opr)
-		switch l_opr {
+        parse_err := r.ParseForm()
+        if parse_err != nil {
+                logger.Println(parse_err)
+        }
+        var NBLampStr NBAllLampControlStruct
+        if len(r.FormValue("token")) == 0 {
+                decoder := json.NewDecoder(r.Body)
+                logger.Println(decoder)
+                err := decoder.Decode(&NBLampStr)
+                if err != nil {
+                        logger.Println(err)
+                }
+        } else {
+                NBLampStr.Token = r.FormValue("token")
+                NBLampStr.Opr = r.FormValue("opr")
+        }
+        l_token := NBLampStr.Token
+        fmt.Println("l_token", l_token)
+        l_opr := NBLampStr.Opr
+        _, bv := TokenParse_errorChecking(l_token)
+        if bv {
+                logger.Println("operation is:", l_opr)
+                switch l_opr {
 
-		case "del_street_lamps_from_a_group":
-			ids := NBLampStr.Data.Ids
-			gid := NBLampStr.Data.GroupId
-			logger.Println("values for SCUids to be deleted:", ids)
-			logger.Println("group id:", gid)
-			ans = DeleteScufromGroup(ids, gid)
+                case "del_street_lamps_from_a_group":
 
-			if ans.Response_status == "fail" {
+		    l_scu_ids := NBLampStr.Data.Ids
+                gid := NBLampStr.Data.GroupId
+                logger.Println("SCU ids to be deleted")
+                for i := 0; i < len(l_scu_ids); i++ {
+                l_scu_id := l_scu_ids[i]
+                logger.Println(l_scu_id)
+                _, err := strconv.ParseUint(l_scu_id, 10, 64)
+                if err != nil {
+                        logger.Println("Invalid SCUID ")
+                        w.WriteHeader(http.StatusBadRequest)
+                        w.Write([]byte("Invalid Lamp id"+l_scu_id + ""))
+                        return
+                }
 
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("500 - " + ans.Data.Message))
-			} else {
-				a, err := json.Marshal(ans)
-				if err != nil {
-					logger.Println("error in Marshalling: ", err)
-					w.WriteHeader(http.StatusInternalServerError)
-				} else {
-					w.Write(a)
-				}
-			}
-		default:
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400- Invalid Operation"))
-		}
-	} else {
-		ans.Response_status = "fail"
-		ans.Data.Message = "Invalid Token"
-		a, err := json.Marshal(ans)
-		if err != nil {
-			logger.Println("Error in json.Marshal")
-			logger.Println(err)
-		} else {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(a)
-		}
-	}
-	return
+                if !IsSCUInDb(l_scu_id) {
+                        w.WriteHeader(http.StatusNotFound)
+                        w.Write([]byte("Lamp id "+ l_scu_id + " not found"))
+                        return
+                }
+                if !IsSCUInGroup(gid, l_scu_id) {
+                        w.WriteHeader(http.StatusNotFound)
+                        w.Write([]byte("Lamp id "+l_scu_id+" not associated with specified group"))
+                        return
+
+                }
+          }
+
+                        if !IsGroupIDInDB(gid){
+                                logger.Println("Invalid Group id")
+                                w.WriteHeader(http.StatusNotFound)
+                                w.Write([]byte("Group Not found"))
+
+                                return
+                        }
+                        //logger.Println("values for SCUids to be deleted:", ids)
+                        logger.Println("group id:", gid)
+                        ans = DeleteScufromGroup(l_scu_ids, gid)
+
+                        if ans.Response_status == "fail" {
+
+                                w.WriteHeader(http.StatusInternalServerError)
+                                w.Write([]byte("500 - " + ans.Data.Message))
+                        } else {
+                                a, err := json.Marshal(ans)
+                                if err != nil {
+                                        logger.Println("error in Marshalling: ", err)
+                                        w.WriteHeader(http.StatusInternalServerError)
+                                } else {
+                                        w.Write(a)
+                                }
+
+                        }
+                default:
+                        w.WriteHeader(http.StatusBadRequest)
+                        w.Write([]byte("400- Invalid Operation"))
+                }
+        } else {
+                ans.Response_status = "fail"
+                ans.Data.Message = "Invalid Token"
+                a, err := json.Marshal(ans)
+                if err != nil {
+                        logger.Println("Error in json.Marshal")
+                        logger.Println(err)
+                } else {
+                        w.WriteHeader(http.StatusUnauthorized)
+                        w.Write(a)
+                }
+        }
+        return
 }
+
+
 
 //New Discovery should comment old one
 func Discovery(w http.ResponseWriter, r *http.Request) {
