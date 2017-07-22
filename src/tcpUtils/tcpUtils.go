@@ -194,28 +194,28 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)    CloseTcpClient()  {
 
 	TcpUtilsStructPtr.reader = nil
 	TcpUtilsStructPtr.writer = nil
-	/*TcpUtilsStructPtr.responseLineBuff = nil
+	TcpUtilsStructPtr.responseLineBuff = nil
 	TcpUtilsStructPtr.commandLineBuff = nil
 	TcpUtilsStructPtr.SCUIDArray = nil
 	TcpUtilsStructPtr.SCUIDinDBArray = nil
 	TcpUtilsStructPtr.ResponseReceivedArray = nil
 	TcpUtilsStructPtr.LampStatusArray = nil
 	TcpUtilsStructPtr.ConnectedToSGU = false
-*/
+
 
 }
 
 
 
-func (TcpUtilsStructPtr	*TcpUtilsStruct) AddTcpClientToSGU(newTcpClient net.Conn) {
+func (TcpUtilsStructPtr	*TcpUtilsStruct) AddTcpClientToSGU(newTcpClient net.Conn, MAXNumOFSCUS int) {
 
 
 
-	//TcpUtilsStructPtr.MAXNumOFSCUS = MAXNumOFSCUS
+	TcpUtilsStructPtr.MAXNumOFSCUS = MAXNumOFSCUS
 	TcpUtilsStructPtr.tcpClient = newTcpClient
 	TcpUtilsStructPtr.reader = bufio.NewReader(TcpUtilsStructPtr.tcpClient)
 	TcpUtilsStructPtr.writer = bufio.NewWriter(TcpUtilsStructPtr.tcpClient)
-	/*
+
 	TcpUtilsStructPtr.responseLineBuff = make([]byte, MaxInOutBufferLength)
 	TcpUtilsStructPtr.commandLineBuff = make([]byte, MaxInOutBufferLength)
 	TcpUtilsStructPtr.SCUIDArray = make([]uint64, MAXNumOFSCUS)
@@ -237,12 +237,13 @@ func (TcpUtilsStructPtr	*TcpUtilsStruct) AddTcpClientToSGU(newTcpClient net.Conn
 	//firmware
 	TcpUtilsStructPtr.Is_updating=false;
 	TcpUtilsStructPtr.Prev_temp_arr=make([]byte,1028)
-*/
-	TcpUtilsStructPtr.ConnectedToSGU = true
+
+
 	TcpUtilsStructPtr.Is_TCP_Connected=true
 
 }
 
+/*
 func (TcpUtilsStructPtr *TcpUtilsStruct) InitializeBufferParams(MAXNumOFSCUS int) {
 	TcpUtilsStructPtr.MAXNumOFSCUS = MAXNumOFSCUS
 	//TcpUtilsStructPtr.tcpClient = newTcpClient
@@ -273,7 +274,7 @@ func (TcpUtilsStructPtr *TcpUtilsStruct) InitializeBufferParams(MAXNumOFSCUS int
 	//TcpUtilsStructPtr.Is_TCP_Connected = true
 
 }
-
+*/
 func  (TcpUtilsStructPtr	*TcpUtilsStruct)  RewindInputBuffer(nBytes int) {
 
 	//if (TcpUtilsStructPtr.inputBufferDipstick < nBytes){
@@ -1218,7 +1219,7 @@ func  (TcpUtilsStructPtr	*TcpUtilsStruct)   ParseInputPacket() {
                 TcpUtilsStructPtr.OutputSeqNumber = TcpUtilsStructPtr.InputSeqNumber;
                 logger.Println("Received packet type 0x0001 successfully");
                 TcpUtilsStructPtr.SendResponsePacket(0x11,0,0,nil,0);
-                TcpUtilsStructPtr.SCUListreceived = true
+               
 		break;
             }
             case 0x0002: {

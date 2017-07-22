@@ -3349,7 +3349,7 @@ func main() {
 	http.HandleFunc("/system/zone/schedule", NBApis.SetScheduleForZone)
 	http.HandleFunc("/system/group/schedule", NBApis.SetScheduleForGroup)
 	http.HandleFunc("/system/delete/zone", NBApis.DeleteGateWaysFromZone)
-        http.HandleFunc("/system/energydata/gateway", NBApis.GetGatewayEnergyData)
+    http.HandleFunc("/system/energydata/gateway", NBApis.GetGatewayEnergyData)
 	//paarth
 	http.HandleFunc("/system/createzone", NBApis.CreateZone)
 	http.HandleFunc("/system/getstatus", NBApis.GetStatus)

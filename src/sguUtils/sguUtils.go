@@ -691,7 +691,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 
 
 	for {
-		//SguUtilsStructPtr.SguTcpUtilsStruct.SCUListreceived = true
+		
 		select {
 
 		case  <-SguUtilsStructPtr.SguTicker.C:  {
@@ -1351,105 +1351,92 @@ func	HandleSguConnections(sguChan chan net.Conn,  MasterdbController dbUtils.DbU
 	//loop and wait for new connection
 
 	go func()  {
-                tempSGU := new(SguUtilsStruct)
-                tempSGU.SguClose = make(chan bool)
-                tempSGU.SGUInitMem()
-		tempSGU.SguTcpUtilsStruct.InitializeBufferParams(maxNumScusPerSgu)
+                
 		for {
 
 			select {
 
 			case temp := <-sguChan:{
 
-				//a new SGU connected.
-				//for now create a new instance and assign it to buffer
-				if (enableSemaphoreLogs) {
-    				logger.Println("Locking6")
-				}
-			//	SguUtilsSemaphore.Lock()
 				
-			/*	tempSGU := new(SguUtilsStruct)
-				tempSGU.SguClose = make(chan bool)
-				tempSGU.SGUInitMem()*/
-                         if tempSGU.SguTcpUtilsStruct.ConnectedToSGU{                    
-                                 tempSGU.SguTcpUtilsStruct.CloseTcpClient()
-                    
-                         }
+					//a new SGU connected.
+					//for now create a new instance and assign it to buffer
+					if enableSemaphoreLogs {
+						logger.Println("Locking6")
+					}
+					SguUtilsSemaphore.Lock()
 
-				tempSGU.SguTcpUtilsStruct.AddTcpClientToSGU(temp)
+					tempSGU := new(SguUtilsStruct)
+					tempSGU.SguClose = make(chan bool)
+					tempSGU.SGUInitMem()
 
-				ticker := time.NewTicker(time.Millisecond * sguTickerTimeInMiliSeconds)
-				tempSGU.SguTicker = ticker
-				go tempSGU.HandleSguPackets()
+					tempSGU.SguTcpUtilsStruct.AddTcpClientToSGU(temp, maxNumScusPerSgu)
 
-			//	SguUtilsSemaphore.Unlock()
-				if (enableSemaphoreLogs) {
-					logger.Println("Unlocked6")
+					ticker := time.NewTicker(time.Millisecond * sguTickerTimeInMiliSeconds)
+					tempSGU.SguTicker = ticker
+					go tempSGU.HandleSguPackets()
+
+					SguUtilsSemaphore.Unlock()
+					if enableSemaphoreLogs {
+						logger.Println("Unlocked6")
+					}
+
 				}
+			case <-done:
+				{
 
+					//close housekeeping function thread
+					close(HousekeepingTickerChan)
 
+					//free memory
+					for k := 0; k < MaxNumSGUs; k++ {
+						SCUIDArray[k] = nil
+					}
 
-			}
-			case <-done:	{
+					logger.Println("closing  sgu handler  loop")
+					//SguBuffer = nil
 
+					return
 
-				//close housekeeping function thread
-				close(HousekeepingTickerChan)
-
-				//free memory
-				for k:=0;k<MaxNumSGUs;k++ {
-					SCUIDArray[k] =  nil
 				}
-
-
-				logger.Println("closing  sgu handler  loop")
-				//SguBuffer = nil
-
-				return
-
-
-			}
 			}
 
 		}
 
 	}()
 
-
 	return done
-
 
 }
 
 //Send Packet With RETRY
 func (SguUtilsStructPtr *SguUtilsStruct)SendWithRetry(OutputPacketType int, SCUID uint64,  StatusByte int, expression   []byte, expressionLength int,gs int){
-	//attempt:=0
-	//strSCU:=strconv.FormatUint(SCUID,10)
-	//init:=SguUtilsStructPtr.SguTcpUtilsStruct.RetryHashSCU[strSCU]
+	attempt := 0
+	strSCU := strconv.FormatUint(SCUID, 10)
+	init := SguUtilsStructPtr.SguTcpUtilsStruct.RetryHashSCU[strSCU]
 	//strHash:=strconv.Itoa(temp.PacketType)+"#"+strconv.FormatUint(temp.SCUID,10)+"#"+strconv.Itoa(getSet)+"#"+strconv.FormatUint(((temp.LampEvent) & 0x0FF),10)
-	strHash:=strconv.Itoa(OutputPacketType)+"#"+strconv.FormatUint(SCUID,10)+"#"+strconv.Itoa(gs)+"#"+strconv.Itoa(((StatusByte) & 0x0FF))
+	strHash := strconv.Itoa(OutputPacketType) + "#" + strconv.FormatUint(SCUID, 10) + "#" + strconv.Itoa(gs) + "#" + strconv.Itoa(((StatusByte) & 0x0FF))
 	/*if ((StatusByte) & 0x0FF)==1{
 		strHash=strconv.Itoa(OutputPacketType)+"#"+strconv.FormatUint(SCUID,10)+"#"+strconv.Itoa(gs)+"#"+strconv.Itoa(9)
 	}*/
 	logger.Println("Rec. for sending 3000 Packet ")
-	SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(OutputPacketType, SCUID,StatusByte ,expression,expressionLength)
-	/*for SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash]==1&&attempt<maxRetry{
-		logger.Println("Try: ",attempt+1,", for SGUID=",SguUtilsStructPtr.SGUID,", Packet Type=",OutputPacketType,", SCUID=",SCUID,", Status=",StatusByte,", Hash=",strHash)
+	for SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash] == 1 && attempt < maxRetry {
+		logger.Println("Try: ", attempt+1, ", for SGUID=", SguUtilsStructPtr.SGUID, ", Packet Type=", OutputPacketType, ", SCUID=", SCUID, ", Status=", StatusByte, ", Hash=", strHash)
 		SguIndex := GetSGURamListIndex(SguUtilsStructPtr.SGUID)
 		if SguIndex == -1 {
-			logger.Printf("Event specified for non existent SGU  %d\n",SguUtilsStructPtr.SGUID)
-		}else{
-			if init!=SguUtilsStructPtr.SguTcpUtilsStruct.RetryHashSCU[strSCU]{
+			logger.Printf("Event specified for non existent SGU  %d\n", SguUtilsStructPtr.SGUID)
+		} else {
+			if init != SguUtilsStructPtr.SguTcpUtilsStruct.RetryHashSCU[strSCU] {
 				logger.Println("New lamp event specified for scu flushing retrys.")
 				break
 			}
-			SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(OutputPacketType, SCUID,StatusByte ,expression,expressionLength)
+			SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(OutputPacketType, SCUID, StatusByte, expression, expressionLength)
 		}
 		du, _ := time.ParseDuration(retryDelay)
 		time.Sleep(du)
-		attempt++;
-	}*/
-	logger.Println("Exiting with Hash =",strHash," Value =",SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash])
+		attempt++
+	}
+	logger.Println("Exiting with Hash =", strHash, " Value =", SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash])
 }
 /************************************************************************************************************/
 func	HandleLampEvents(lampControllerChan chan	SguUtilsLampControllerStruct)  (chan bool) {
