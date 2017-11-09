@@ -930,8 +930,8 @@ log.Println("getSetByte--:", getSetByte)
 					}
 					TcpUtilsStructPtr.AddByteToOutputBuff((byte)(tt));
 					tval:=0x01
-					if lampVal==0{
-						tval=0
+					if lampVal == 0{
+						tval = 0x00
 					}
                 	TcpUtilsStructPtr.AddByteToOutputBuff((byte)(tval ));
                 	TcpUtilsStructPtr.AddByteToOutputBuff((byte)(tval ));

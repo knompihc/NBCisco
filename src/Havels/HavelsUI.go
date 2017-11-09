@@ -78,7 +78,7 @@ var (
 )
 
 const (
-	Deployment_id          = "HAVELLSWB"
+	Deployment_id          = "Test"
 	MaxNumSGUs             = 1024
 	sguChanSize            = 16
 	SendSMSChanSize        = 8

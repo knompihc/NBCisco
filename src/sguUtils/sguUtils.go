@@ -127,6 +127,7 @@ func Config_Params(per_scudelay string,scu_polling string,scu_retry_delay string
 	sguCheckResponseTimeInMiliseconds,_=strconv.Atoi(scu_polling)
 	sguCheckResponseTimeInMiliseconds*=1000
 	sguCheckResponseTimeCount=sguCheckResponseTimeInMiliseconds/sguTickerTimeInMiliSeconds
+	logger.Println("scu_max_retry: ",scu_max_retry)
 	maxRetry,_=strconv.Atoi(scu_max_retry)
 	retryDelay=scu_retry_delay+"s"
 	per_scu_delay=per_scudelay+"s"
@@ -895,8 +896,8 @@ func (SguUtilsStructPtr *SguUtilsStruct)HandleSguPackets() {
 					}
 
   					SguUtilsSemaphore.Unlock()
-				//	SguUtilsStructPtr.SendAlertSMS()
-				//	SguUtilsStructPtr.SGUGetLampStatus()
+					SguUtilsStructPtr.SendAlertSMS()
+					//SguUtilsStructPtr.SGUGetLampStatus()
 					SguUtilsStructPtr.UpdateDBWithLampStatus()
 				}
 
@@ -1419,7 +1420,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)SendWithRetry(OutputPacketType int, SCUI
 	/*if ((StatusByte) & 0x0FF)==1{
 		strHash=strconv.Itoa(OutputPacketType)+"#"+strconv.FormatUint(SCUID,10)+"#"+strconv.Itoa(gs)+"#"+strconv.Itoa(9)
 	}*/
-	logger.Println("Rec. for sending 3000 Packet ")
+	logger.Println("Rec. for sending 3000 Packet, maxRetry is: ",maxRetry)
 	for SguUtilsStructPtr.SguTcpUtilsStruct.RetryHash[strHash] == 1 && attempt < maxRetry {
 		logger.Println("Try: ", attempt+1, ", for SGUID=", SguUtilsStructPtr.SGUID, ", Packet Type=", OutputPacketType, ", SCUID=", SCUID, ", Status=", StatusByte, ", Hash=", strHash)
 		SguIndex := GetSGURamListIndex(SguUtilsStructPtr.SGUID)
@@ -1430,7 +1431,10 @@ func (SguUtilsStructPtr *SguUtilsStruct)SendWithRetry(OutputPacketType int, SCUI
 				logger.Println("New lamp event specified for scu flushing retrys.")
 				break
 			}
-			SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(OutputPacketType, SCUID, StatusByte, expression, expressionLength)
+			if SguUtilsStructPtr.SguTcpUtilsStruct.ConnectedToSGU{
+				logger.Println("SGU IS CONNECTED, SENDING PACKET: ",OutputPacketType)
+				SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(OutputPacketType, SCUID, StatusByte, expression, expressionLength)
+			}
 		}
 		du, _ := time.ParseDuration(retryDelay)
 		time.Sleep(du)
