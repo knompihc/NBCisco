@@ -1127,6 +1127,19 @@ func	AddSCUToDB(sguID uint64, scuID uint64)	{
 
 
 		DbController.Stmt.Close()
+	//New Code to add SCU in status table once we get 0x0003 packet first time for this scu
+		stmt, err := DbController.Db.Prepare("INSERT scu_status SET scu_id=?,status=?, timestamp=Now()")
+		if err != nil {
+			logger.Println("Could not update SCU status")
+		}else{
+			res, err := stmt.Exec(strconv.FormatUint(scuID, 10), 2)
+			if err != nil {
+				logger.Println("Could not update SCU status")
+			}else if res == nil {
+				logger.Println("Could not update SCU status")
+			}
+		}
+//		DbController.stmt.Close()
 		DbController.DbSemaphore.Unlock()
 
 
@@ -1184,10 +1197,15 @@ func (SguUtilsStructPtr *SguUtilsStruct)UpdateSCUListInDB() {
 				logger.Printf("Found and added a new scu %d for sgu %d\n",scuID,SguUtilsStructPtr.SGUID)
 				//also update RAM list
 				SCUIDArray[sguIndex][NumOfSCUsInDb[sguIndex]] = scuID
+				logger.Println("New SCU added into ram: ",SCUIDArray[sguIndex][NumOfSCUsInDb[sguIndex]])
 				NumOfSCUsInDb[sguIndex]++
 			}
 
 		}
+	}
+	for k := 0; k < NumOfSCUsInDb[sguIndex]; k++ {
+		SguUtilsStructPtr.SguTcpUtilsStruct.SCUIDinDBArray[k] = SCUIDArray[sguIndex][k]
+		logger.Println("SCUID=", SCUIDArray[sguIndex][k], " for SGUID=", SguUtilsStructPtr.SGUID)
 	}
 
 }
