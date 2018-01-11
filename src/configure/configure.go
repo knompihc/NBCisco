@@ -223,6 +223,7 @@ func Scusave(w http.ResponseWriter, r *http.Request)  {
 			err=trows.Scan(&schid,&sst,&set,&se,&pwm,&tss)
 			chkErr(err,&w)
 		}
+		 logger.Println("SET SCHEDULE REQUEST FOR SCU ID: ",scid," DATA --> PWM: ",pwm,", PRIORITY: ",shgid,", EXPRESSION: ",se)
 		//_, eorr:=stmt.Exec(val,scid,shgid,pwm,sst,set,se)
 		//chkErr(eorr,&w)
 		status:=0

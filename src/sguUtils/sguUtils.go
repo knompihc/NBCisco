@@ -1452,6 +1452,10 @@ func (SguUtilsStructPtr *SguUtilsStruct)SendWithRetry(OutputPacketType int, SCUI
 			if SguUtilsStructPtr.SguTcpUtilsStruct.ConnectedToSGU{
 				logger.Println("SGU IS CONNECTED, SENDING PACKET: ",OutputPacketType)
 				SguUtilsStructPtr.SguTcpUtilsStruct.SendResponsePacket(OutputPacketType, SCUID, StatusByte, expression, expressionLength)
+			}else{
+				logger.Println("SGU IS NOT CONNECTED CLOSING THE CONNECTION")
+				SguUtilsStructPtr.SguTcpUtilsStruct.CloseTcpClient()
+				break
 			}
 		}
 		du, _ := time.ParseDuration(retryDelay)
