@@ -551,6 +551,7 @@ func (SguUtilsStructPtr *SguUtilsStruct)SGUGetLampStatus() {
 	for k:=0;k<NumOfSCUsInDb[sguIndex];k++ {
 
 		tempLampControl.SCUID = SCUIDArray[sguIndex][k]
+		logger.Println("GET SCU STATUS: 0X3000, FOR SCU_ID: ",SguUtilsStructPtr.SGUID)
 		MasterLampControllerChan<-tempLampControl
 
 	}
@@ -1526,7 +1527,7 @@ func	HandleLampEvents(lampControllerChan chan	SguUtilsLampControllerStruct)  (ch
 							scuIndex := SguUtilsStructPtr.SguTcpUtilsStruct.GetSCUIndexFromSCUID(temp.SCUID)
 							if scuIndex>=0{
 								getSet := ((temp.LampEvent >> 8) & 0x0FF)
-
+								logger.Println("PACKET TYPE: 0X3000, SCU_ID: ",strconv.FormatUint(temp.SCUID,10)," GET-SET BYTE: ",getSet)
                                 //if current command is set, need to check if old response is still pending.
 								//if current command is get, no need for check
 
