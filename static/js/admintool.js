@@ -10,6 +10,17 @@ $(document).ready(function() {
 
     var host = window.document.location.hostname;
     var port = location.port;
+	$("#autoFill").on('click',function(){
+		console.log("Getting geo location...")
+		if ("geolocation" in navigator){ 
+        		navigator.geolocation.getCurrentPosition(function(position){ 
+            		$("#lat").val(position.coords.latitude);
+			$("#lng").val(position.coords.longitude);
+        	});
+    	}else{
+        	console.log("Browser doesn't support geolocation!");
+    	}
+	});
     $.ajax({	//create an ajax request to load_page.php
         type: "GET",
         url: "http://" + host + ":" + port + "/configure/getsculoc",
